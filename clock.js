@@ -108,9 +108,9 @@ var startRendering = function (data) {
     // Duplicate (x,y) are removed.
     var holes = [];
 
-    // Lowest and highest plane.
-    var maxPlane = -100000;
-    var minPlane = 100000;
+    // Lowest and highest Z value.
+    var maxZ = -100000;
+    var minZ = 100000;
 
     // Draw each gear.
     for (var gear_index in pieces) {
@@ -118,7 +118,7 @@ var startRendering = function (data) {
         var points = gear.points;
         var cx = gear.cx;
         var cy = -gear.cy;
-        var plane = gear.plane*data.material_thickness;
+        var cz = gear.cz*data.material_thickness;
 
         // Create geometry.
         var material = new THREE.LineBasicMaterial({ color: gear.color });
@@ -161,8 +161,8 @@ var startRendering = function (data) {
                 hole.attachedTo = gear;
             }
 
-            minPlane = Math.min(minPlane, plane);
-            maxPlane = Math.max(maxPlane, plane);
+            minZ = Math.min(minZ, cz);
+            maxZ = Math.max(maxZ, cz);
         }
 
         if (gear.bind) {
@@ -176,7 +176,7 @@ var startRendering = function (data) {
         // Make a parent gear object for all three.
         gearObject.position.x = cx;
         gearObject.position.y = cy;
-        gearObject.position.z = plane;
+        gearObject.position.z = cz;
 
         scene.add(gearObject);
         objects.push({
@@ -191,7 +191,7 @@ var startRendering = function (data) {
         var hole = holes[i];
 
         var axle = new THREE.Object3D();
-        addCylinder(0, 0, minPlane - 60, maxPlane + 80, hole.r, 20, material, axle);
+        addCylinder(0, 0, minZ - 60, maxZ + 80, hole.r, 20, material, axle);
         axle.position.x = hole.x;
         axle.position.y = hole.y;
         axle.position.z = 0;

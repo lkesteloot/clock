@@ -42,7 +42,7 @@ class GearTrain:
         self.cx = cx
         self.cy = cy
         self.last_teeth_count = 0
-        self.last_plane = None
+        self.last_cz = None
         self.color_index = 0
         self.speed = 1.0
         self.module = module
@@ -52,18 +52,18 @@ class GearTrain:
         "Rotate all gears by this much, where pi means an entire tooth on a one-tooth gear."
         self.angle_offset = angle_offset
 
-    def add_separators_to_plane(self, plane, hole_radius):
-        if self.last_plane is not None:
-            min_plane = min(plane, self.last_plane) + 1
-            max_plane = max(plane, self.last_plane) - 1
-            for separator_plane in range(min_plane, max_plane + 1):
+    def add_separators(self, next_cz, hole_radius):
+        if self.last_cz is not None:
+            start_cz = min(next_cz, self.last_cz) + 1
+            stop_cz = max(next_cz, self.last_cz) - 1
+            for cz in range(start_cz, stop_cz + 1):
                 piece = separator.generate(self.cx, self.cy, hole_radius)
-                piece["plane"] = separator_plane
+                piece["cz"] = cz
                 piece["speed"] = self.speed
                 bind.add_bind_info(piece)
                 self.data["pieces"].append(piece)
 
-    def add_gear(self, teeth_count, direction, hole_radius, plane=1, suppress=False):
+    def add_gear(self, teeth_count, direction, hole_radius, cz=1, suppress=False):
         distance = (self.last_teeth_count + teeth_count)/2.0*self.module + GEAR_SPACING
 
         x = self.cx
@@ -74,7 +74,7 @@ class GearTrain:
             self.color_index = (self.color_index + 1) % len(COLORS)
 
             # Make separators.
-            self.add_separators_to_plane(plane, hole_radius)
+            self.add_separators(cz, hole_radius)
         else:
             if direction == NORTH:
                 y -= distance
@@ -109,7 +109,7 @@ class GearTrain:
                 hole_radius, angle, COLORS[self.color_index], self.module)
 
         piece["speed"] = self.speed
-        piece["plane"] = plane
+        piece["cz"] = cz
         bind.add_bind_info(piece)
         if not suppress:
             self.data["pieces"].append(piece)
@@ -117,4 +117,4 @@ class GearTrain:
         self.cx = x
         self.cy = y
         self.last_teeth_count = teeth_count
-        self.last_plane = plane
+        self.last_cz = cz

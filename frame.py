@@ -115,7 +115,7 @@ def generate(data, color):
     piece = {
         "cx": 0,
         "cy": 0,
-        "plane": -3,
+        "cz": -3,
         "type": "frame",
         "color": color,
         "speed": 0,
@@ -125,6 +125,6 @@ def generate(data, color):
     data["pieces"].append(piece)
 
     piece = piece.copy()
-    piece["plane"] = 9
+    piece["cz"] = 9
     data["pieces"].append(piece)
 

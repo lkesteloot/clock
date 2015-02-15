@@ -1,16 +1,6 @@
 
 To do:
-    Look at this model:
-        http://upload.wikimedia.org/wikipedia/commons/7/76/Antikythera_model_front_panel_Mogi_Vicentini_2007.JPG
-        It seems to use bolts with long spacers.
-        This reduces the number of nuts needed to two per bolts.
-        We could get longer spacers and cut them ourselves.
-        They also seem to use brass instead of steel.
-        http://www.homedepot.com/p/The-Hillman-Group-5-8-I-D-x-7-8-O-D-x-1-1-2-in-Seamless-Steel-Spacer-5-Pack-880422/204724814?N=5yc1vZc276Z3hk
-    Figure out why there's so much friction in prototype.
-    Figure out why prototype recoils.
     Incorporate lessons from the first prototype (see below).
-    Replace "plane" with "cz" throughout.
     Don't make axles rotate in 3D viewer.
     Figure out minute/hour hand.
     Figure out pendulum and verge handle's interference with axle below.
@@ -177,6 +167,13 @@ Misc:
     Could light it with LEDs on the sides, though the acrylic.
 
 Research:
+    Look at this model:
+        http://upload.wikimedia.org/wikipedia/commons/7/76/Antikythera_model_front_panel_Mogi_Vicentini_2007.JPG
+        It seems to use bolts with long spacers.
+        This reduces the number of nuts needed to two per bolts.
+        We could get longer spacers and cut them ourselves.
+        They also seem to use brass instead of steel.
+        http://www.homedepot.com/p/The-Hillman-Group-5-8-I-D-x-7-8-O-D-x-1-1-2-in-Seamless-Steel-Spacer-5-Pack-880422/204724814?N=5yc1vZc276Z3hk
     https://www.youtube.com/watch?v=6w1dDuSqO90
         Uses threaded rods to keep planes together. With nuts and washers.
         Looks like 1/4" acrylic?
@@ -224,11 +221,6 @@ Experiment with slipping axle.
     0.396 is okay. Slips oddly. The kerf seems to be wider on top than on the bottom.
     This may not be a good solution to the problem. I can't get enough control over the slip.
     Could I use some felt or something?
-
-Draw total set of wheels and escapement. Determine all holes, gears, planes, etc.
-    Issues:
-        I want hour hand to be in front of front board. Is that a separate plane?
-            That saves space for spool in axle B.
 
 Cut out all gears and boxes as a test. Put together. Repeat until not broken.
     Needed ultimately:

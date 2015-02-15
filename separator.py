@@ -32,7 +32,7 @@ def generate(x, y, hole_radius):
         "type": "separator",
         "cx": x,
         "cy": y,
-        "plane": 0,
+        "cz": 0,
         "color": "#FFFFFF",
         "hole_radius": hole_radius,
         "outer_radius": SEPARATOR_RADIUS,

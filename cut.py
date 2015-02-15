@@ -32,14 +32,14 @@ def main():
 
     out = sys.stdout
     x_multiplier = 1.1
-    plane_offset = 5*DPI
+    cz_scale = 5*DPI
 
     draw.header(out, WIDTH*x_multiplier, HEIGHT*7)
 
     # Make cuts.
     for piece_index, piece in enumerate(data["pieces"]):
         cx = piece["cx"]*x_multiplier
-        cy = piece["cy"] + piece["plane"]*plane_offset
+        cy = piece["cy"] + piece["cz"]*cz_scale
         color = piece["color"]
 
         # Always use black for cut, it makes it easier to see in AI.

@@ -107,7 +107,7 @@ def add_arc(p, begin_deg, end_deg, radius):
         rad = deg*DEG_TO_RAD
         p.append(Vector(cos(rad), sin(rad))*radius)
 
-def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radius, plane):
+def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radius, cz):
     # Angle where the arc ends and the tooth starts.
     front_angle_deg = find_tooth_angle(ROOT_RADIUS, TOOTH_HEIGHT, FRONT_ANGLE_TIP_DEG)
 
@@ -153,13 +153,13 @@ def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radiu
         "points": [(v.x, v.y) for v in p],
         "cx": center.x,
         "cy": center.y,
-        "plane": plane,
+        "cz": cz,
         "speed": speed,
         "hole_radius": hole_radius,
     }
     return piece
 
-def generate_verge(color, center, angle_offset_deg, speed, hole_radius, plane):
+def generate_verge(color, center, angle_offset_deg, speed, hole_radius, cz):
     left_full_in_angle, _, _ = find_intersection_rotation(
             VERGE_CENTER, VERGE_LEFT_OUTER_RADIUS,
             ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT, True)
@@ -191,7 +191,7 @@ def generate_verge(color, center, angle_offset_deg, speed, hole_radius, plane):
         "points": [(v.x, v.y) for v in p],
         "cx": center.x,
         "cy": center.y,
-        "plane": plane,
+        "cz": cz,
         "speed": speed,
         "hole_radius": hole_radius,
         "left_full_in_angle": left_full_in_angle,
@@ -232,7 +232,7 @@ def find_intersection_rotation(c1, r1, c2, r2, turn_right):
 
     return angle, c, p
 
-def generate(data, position_type, origin, speed, hole_radius, plane=0):
+def generate(data, position_type, origin, speed, hole_radius, cz=0):
     if position_type == 0:
         # Home. Not very interesting.
         escapement_angle_offset = 4.0
@@ -293,12 +293,12 @@ def generate(data, position_type, origin, speed, hole_radius, plane=0):
         verge_angle_offset -= VERGE_RIGHT_OUTER_DEG
 
     piece = generate_escapement_wheel("#FF0000",
-            origin + ESCAPEMENT_CENTER, escapement_angle_offset, speed, hole_radius, plane)
+            origin + ESCAPEMENT_CENTER, escapement_angle_offset, speed, hole_radius, cz)
     bind.add_bind_info(piece)
     data["pieces"].append(piece)
 
     if False:
-        piece = generate_verge("#FF0000", origin + VERGE_CENTER, verge_angle_offset, speed, hole_radius, plane)
+        piece = generate_verge("#FF0000", origin + VERGE_CENTER, verge_angle_offset, speed, hole_radius, cz)
         bind.add_bind_info(piece)
         data["pieces"].append(piece)
 
