@@ -31,6 +31,7 @@ def main():
     # Data file we're going to output.
     data = {
         "material_thickness": MATERIAL_THICKNESS,
+        "dpi": DPI,
         "pieces": [],
     }
 
