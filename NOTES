@@ -1,0 +1,327 @@
+
+To do:
+    Look at this model:
+        http://upload.wikimedia.org/wikipedia/commons/7/76/Antikythera_model_front_panel_Mogi_Vicentini_2007.JPG
+        It seems to use bolts with long spacers.
+        This reduces the number of nuts needed to two per bolts.
+        We could get longer spacers and cut them ourselves.
+        They also seem to use brass instead of steel.
+        http://www.homedepot.com/p/The-Hillman-Group-5-8-I-D-x-7-8-O-D-x-1-1-2-in-Seamless-Steel-Spacer-5-Pack-880422/204724814?N=5yc1vZc276Z3hk
+    Figure out why there's so much friction in prototype.
+    Figure out why prototype recoils.
+    Incorporate lessons from the first prototype (see below).
+    Replace "plane" with "cz" throughout.
+    Don't make axles rotate in 3D viewer.
+    Figure out minute/hour hand.
+    Figure out pendulum and verge handle's interference with axle below.
+    At next hardware store:
+        ?
+    At next TechShop:
+        Cut separators with smaller inner hole.
+    Do we want to keep horizontal layout, now that we can re-use axles?
+    Add pendulum.
+    Add spool.
+    Add minute and hour hand.
+        How to do that with new axle scheme?
+
+Conversation with Michael Birken:
+    - https://www.youtube.com/watch?v=6w1dDuSqO90&hd=1
+    - http://imgur.com/fBH9L
+    - http://imgur.com/akejm
+    - http://imgur.com/HtzHM
+    - The shafts (arbors) do not rotate.  All the gears rotate around the
+      immobile shafts.  It is difficult to describe how I got the hour and
+      minute hands on the same shaft without a picture.  But, look at the video
+      around the 15 second mark.  See the large gear behind the hour hand?  The
+      hour hand is actually super glued to that gear (the hour gear).  It was
+      the only application of glue in the clock.  The hour hand is really 3
+      separate pieces.  The pointer, the tail and a center black circle.  The
+      pointer and tail rotate around the center black circle as opposed to
+      being attached to it.  The hour gear also rotates around a circle and
+      that circle rotate around the shaft.  So, the hour gear and hour hand
+      effectively float around a cylindrical shaft made of layers of cut
+      acrylic that drive the minute hand.  I hope that description makes some
+      sense to you.
+
+      Your escapement mechanism will not work.  Laser cutters are really bad at
+      making long tapered teeth like that.  The tips will melt off.  Your
+      pendulum swing angle is enormous; it will require too much power to
+      sustain.  You might want to consider using a recoil escapement instead of
+      a deadbeat escapement to avoid lubrication and precision issues.  If you
+      have the resources, build and test your escapement mechanism first.
+
+      More importantly, I discovered that making the gears to revolve around
+      stationary shafts was a major design flaw.  It introduces way too much
+      friction.  I wanted to make a clock could simply be screwed together
+      (with the exception of the glued hour hand).  I should have screwed the
+      gears to ball bearing pivots.  
+
+      I actually went a bit overboard with the gear tooth design.  I started
+      out simulating hobbing (CSG subtraction): http://i.imgur.com/Y3MO1.gif
+
+      Then, I got worried that the approximation would not be good enough.  So,
+      I spent a few months studying the book "Gear Geometry and Applied
+      Theory".  I used the ideas in there to create tools that generated the
+      tooth surfaces mathematically based on all the parameters I was
+      interested in.  Later, I realized that the original approximation would
+      work just as well.
+
+      Here are animations of my escapement:
+
+        http://i.imgur.com/fBH9L.gif
+        http://i.imgur.com/akejm.gif
+        http://i.imgur.com/HtzHM.gif
+
+      Again, I wrote a program that would enable me to specify the pendulum
+      angle and it would compute the rest.  My main concern was error
+      tolerance.  This is the main problem with building a clock out of acrylic
+      instead of metal or wood.  Acrylic cannot be modified once it is cut.
+      Whereas traditional clock makers can achieve amazingly high precision by
+      shaving, bending and pinching metal with screws.  They can do endless
+      tweaks until it works perfectly.  But, with plastic, it has to be cut and
+      assembled perfectly.  Which means that the design must be fault tolerant.
+
+      To make that possible, I had the software repeatedly introduce random
+      errors in the shape and alignment of the parts.  Until from sampling, I
+      had an error range in which everything would still work.  I had it
+      optimize until that range grew to 0.1 inches.  Unfortunately, that
+      results in large drops in the escapement (it ticks very loudly).  But, it
+      guaranteed that the escapement would work when assembled.
+
+      I also went overboard with the laser cutting digital files.  I had
+      trouble using SVG because SVG doesn't contain scale information.  I
+      actually ended up creating PDFs.  But, more importantly, I made sure that
+      the paths in the file were all continuously connect so that the laser did
+      not jump around.  I found that if I did not do that, sometimes I ended up
+      with some jagged points that should not have been there.  I made sure
+      that the start and stop points were located in the valleys between teeth
+      for that reason.  I didn't trust any third party software for doing all
+      this. 
+
+      My next clock is going to built using low-tech techniques.  I realized
+      that there is much easier way to do everything.  I am giving up on laser
+      cutting and 3D printing for now.  I over thought everything.
+
+      Involute and cycloidal gears provide 2 advantages: 1) They transfer power
+      smoothly and 2) the forces are distributed over multiple teeth.  But,
+      there are plenty of other gear geometries.  They won't transfer power
+      smoothly and consequentially, only 1 tooth is is contact with another at
+      any given time.  But, they are easy to construct.  And, they can be
+      thrown together from almost anything.  I'll still use software to create
+      templates and to verify tolerances, but I am not going for laser cutting
+      or 3D printing.  As mentioned in prior response, you can tune it a lot
+      more when you built it at that level.  And, I'll be able to test it part
+      by part.
+
+      If you have access to the cutter and the materials, just build
+      escapements first.  Recognize that is the heart of the machine.  The
+      gears are the easy part.  Get an escapement with no clock attached to
+      work.  Figure out how much weight it requires just to power that alone.
+      Then, multiply it out to where the barrel will really be located.  For
+      instance, if the barrel is powering the minute hand directly, then only
+      1/60 of the weight will be powering the escapement wheel.  Even with a 10
+      pound weight, that's only 0.167 pounds on the escapement wheel.  That's a
+      tiny amount of force.  If you can't get an escapement mechanism running
+      on that alone, don't bother even trying to build the clock.  And, if you
+      have friction in your gear train, you might end up with 1/10 of that
+      force.
+
+Notes:
+    Y is positive going down. This matches SVG.
+    Origin (0,0) is upper-left. This matches SVG.
+    In THREE.js, Y is positive going up.
+        We negate Y coordinates and angles to match SVG.
+    Laser:
+        Hairline width in AI is 0.001pt.
+        Material width is 3/16".
+        Settings: 8/90/5000 on Laser 3 (Nov 16, 2014)
+        DPI is 72
+    Gear placements, from top:
+        16 ---- 64              60 ---- 21
+        **                      **      **
+        60 ---- 20      49 ---- 20      **      EE
+                **      **              **      **
+                60 ---- 20              60 ---- 21
+    Lessons learned from initial cut on Nov 16, 2014:
+        Make separator holes a bit smaller so that the bearings push against them. Otherwise
+            the nuts push them in, especially for the axles with multiple separators.
+        Slightly more room in the binding holes. Otherwise it's hard to insert the bolts.
+        The nuts of the binders run into the other gears, especially if the bolts of the
+            binders are too long. Perhaps double the number of separators to avoid this.
+        Perhaps remove the blue cover before doing the lasering -- at least for the top side.
+        Move the binding nuts further away from the axle so they don't run into the bearings.
+
+Questions:
+    How do I wind the clock?
+        Need the spool to either have a loose mode or have a one-way thing.
+    On which axle do I put the spool?
+        On minute hand it would take hours to unwind, but wouldn't have much torque.
+    The gears will start and stop every second. Can we reduce the inertia by
+        making them mostly empty? Could we use a cool pattern to do that? Or maybe
+        re-use the big empty pieces?
+
+Misc:
+    Skateboard inner rod is 8 mm, outer is 22 mm, width is 7 mm (0.28 inches).
+        Note that 5/16" ("standard axle") is just short of 8 mm (7.94 mm).
+    Could save acrylic by:
+        Printing small wheels inside big wheels.
+        Cutting out only parts of the big sheets.
+    Clocks seem to decouple the swing of the pendulum from the movement of the verge.
+        Why? Maybe the pendulum wants to swing less than the verge needs to move.
+        Also maybe if the verge holds the pendulum, that's too much friction on
+            the axle from the weight of the pendulum. So hang the pendulum from a
+            single point, or by bending a thin piece of metal.
+        Apparently the piece that connects one to the other is called a yoke, and it
+            can increase the push from the verge onto the pendulum.
+    Should round out all right angles to make it more robust.
+    Could light it with LEDs on the sides, though the acrylic.
+
+Research:
+    https://www.youtube.com/watch?v=6w1dDuSqO90
+        Uses threaded rods to keep planes together. With nuts and washers.
+        Looks like 1/4" acrylic?
+        Instead of solid sheets for frame, use horizontal and vertical slats.
+        Axles don't rotate, they're fixed.
+            That may make it easier to wind the clock or set the time.
+        To get two gears to rotate together, put solid acrylic between them and
+            bolt together with six bolts.
+            We could do that without metal by cutting a rectangle from the gears
+                and a slat from acrylic. Getting to fit tightly might be tricky.
+            This would also extend the length of the hole, which would make the
+                gears more perpendicular to the axle. Could we then use thinner acrylic?
+            No glue, so easy to take apart and fix.
+        72 teeth for the big gears, about 18 for small gears.
+            That's 4-to-1 ratio.
+            For minute hand, that's 3600s period.
+            Divided by 4 twice, that's 225s.
+            Maybe divide by 5 to get 45s for escapement wheel.
+        Escapement and verge have very simple triangular shapes.
+    http://www.instructables.com/id/Acrylic-Skeleton-Clock/
+        3mm acrylic.
+        5mm shaft.
+        More traditional verge/escapement.
+        Uses a sandwich to hold gears together:
+            Ring with bearing in the middle.
+            Gear (hold is larger than axle)
+            Spacer (hold is larger than axle)
+            Gear (hold is larger than axle)
+            Ring with bearing in the middle.
+
+Experiment with slipping axle.
+    Rod is between .505 and .511 diameter.
+        Or .508 to .515 (other micrometer)
+    What is kerf of laser?
+        One random site said 0.007"
+    Find hole size to make it slip.
+    If slipping is odd (because oval/unpredictable):
+        Make circular ring we can glue to axle.
+    Hole of 0.254" perfect for above rod. Slight slip, probably easy to glue. Anything
+        small is hard to insert.
+    Wait, 0.254 didn't work when made as a ring. Trying 0.255 and wider ring (to 0.4")
+        .255 is really nice. 0.256 is a bit too loose.
+    0.40" outside of ring fits nicely in 0.393 inside of hole. Kerf is about 0.007"! That's
+        what random site said.
+    0.396 is okay. Slips oddly. The kerf seems to be wider on top than on the bottom.
+    This may not be a good solution to the problem. I can't get enough control over the slip.
+    Could I use some felt or something?
+
+Draw total set of wheels and escapement. Determine all holes, gears, planes, etc.
+    Issues:
+        I want hour hand to be in front of front board. Is that a separate plane?
+            That saves space for spool in axle B.
+
+Cut out all gears and boxes as a test. Put together. Repeat until not broken.
+    Needed ultimately:
+        Plan for holes in 24x8 sheets.
+        Plan for gears cut out of 24x18 sheets.
+        Plan for misc pieces:
+            Washers.
+            Spool.
+            Escapement wheel.
+            Anchor.
+            Minute hand.
+            Pulley.
+            Pendulum.
+        Counts and lengths of:
+            Axes.
+            Bolts (to hold plates together).
+    Goal for today (7/11/2010):
+        Make:
+            Spool, 3 x 1/8".
+            Minute gear (20), tight slip, 1/4".
+            Gear (60), 1/4".
+            Gear (16), 1/4".
+            Hour gear (64), loose slip, 1/4".
+            Two plates, 8x8.
+                4 tight holes.
+                2 loose holes.
+            Four bolts.
+            Two axles.
+        To do:
+            Gears:
+              * Modify program to output gears by themselves.
+              * Import into CorelDraw.
+              * Determine size.
+                    64 = 6.6" diameter
+                    60 = 6.2" diameter
+                    20 = 2.2" diamater
+                    16 = 1.8" diameter
+              * Find scrap that size, 1/4".
+              * Cut gears.
+            Spool:
+              * Design spool.
+                    Inner is 1/4".  Radius = 0.80".
+                    Outside is 1/8".  Radius = 1.25"
+              * Make spool in Python.
+              * Generate SVG for spool.
+              * Import into CorelDraw.
+              * Determine size.
+              * Find scrap that size.
+              * Cut spool.
+            Plates (test):
+              * Make plates in Python.
+                    Four corner holes, tight hole radius.
+                        0.25" r
+                        0.50 from edges at corners.
+                    Two axel holes, loose hole radius.
+                        Vertical = 4"
+                        Separation:
+                            Total teeth = 80 (64+16 or 60+20)
+                            Distance = 80/2*module
+                            Module = 0.1"
+                            Grace = 0.05"
+                            Distance = 40*0.1" + 0.05" = 4.05"
+                        Position = 5" - 4.05"/2
+                    10x8" total.
+              * Generate SVG for plates.
+              * Import into CorelDraw.
+              * Determine size.
+              * Find scrap that size.
+              * Cut plates.
+            Washers:
+              * Four (one for each loose gear)
+              * Tight radius
+              * 1" radius for large gear, 0.75" for small gear.
+  =========>    Several small washers to keep axle from moving.
+    To do next:
+        Put together test rig.
+            Might need extra washers (see above).
+            Maybe go ahead and glue it all so we can learn from that.
+            Need to cut rods.
+            Tie fishing line to spool and put on axle.
+        Design escapement wheel and anchor.
+        Design pendulum.
+            How heavy is the weight?
+            What to use for weight?
+            How to make height of weight adjustable?
+        Design pulley.
+            How to make pulley wheel?
+                Like spool but 1/8" in center.
+            Two bars down the side.
+            What to use for weight?
+            How heavy to make it?
+            Make generic hook so we can try different weights.
+        How to attach final clock to wall?
+        Design final layout.
+            24"x8" with all axle holes.
+            Holes in gear driven by spool.
