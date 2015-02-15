@@ -15,7 +15,7 @@
 
 import math, sys
 
-from config import GEAR_SPACING, TAU
+from config import GEAR_SPACING, TAU, DPI
 import gear
 import separator
 import bind
@@ -24,6 +24,10 @@ NORTH = 0
 EAST = 1
 SOUTH = 2
 WEST = 3
+
+# How much to shrink the radius of the separator holes, in inches.
+# 1/4 inch is too much. 1/8 would probably work fine too.
+SEPARATOR_HOLE_SHRINK = 1.0/16
 
 COLORS = [
         "#FF0000",
@@ -53,6 +57,10 @@ class GearTrain:
         self.angle_offset = angle_offset
 
     def add_separators(self, next_cz, hole_radius):
+        # We need to make the hole a bit smaller so that the bearings don't
+        # push into the separators.
+        hole_radius -= DPI*SEPARATOR_HOLE_SHRINK
+
         if self.last_cz is not None:
             start_cz = min(next_cz, self.last_cz) + 1
             stop_cz = max(next_cz, self.last_cz) - 1

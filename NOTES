@@ -1,11 +1,17 @@
 
 To do:
-    Incorporate lessons from the first prototype (see below).
+    Incorporate lessons from the first prototype.
+        Slightly more room in the binding holes. Otherwise it's hard to insert the bolts.
+        The nuts of the binders run into the other gears, especially if the bolts of the
+            binders are too long. Perhaps double the number of separators to avoid this.
+        Perhaps remove the blue cover before doing the lasering -- at least for the top side.
+        Move the binding nuts further away from the axle so they don't run into the bearings.
     Figure out minute/hour hand.
     Figure out pendulum and verge handle's interference with axle below.
     At next hardware store:
         ?
     At next TechShop:
+        Remove the blue cover first?
         Cut separators with smaller inner hole.
     Do we want to keep horizontal layout, now that we can re-use axles?
     Add pendulum.
