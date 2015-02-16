@@ -15,21 +15,29 @@
 
 import sys
 import argparse
-from math import sin, cos, tan, sqrt, pi, atan, floor
+from math import sin, cos, tan, sqrt, pi, atan, floor, acos
 
 from vector import Vector
+from config import DPI, TAU
 import bind
 
-DPI = 96
 WIDTH = 16 * DPI
 HEIGHT = 12 * DPI
 
 DEG_TO_RAD = pi/180
-RAD_TO_DEG = 1 / DEG_TO_RAD
+RAD_TO_DEG = 1/DEG_TO_RAD
 
 # Dimensions are in points.
 VERT_DIST_PT = 312   # Get this from the output of gear.py
-NUM_TEETH = 30
+
+# Escapement wheel parameters.
+ESC_RADIUS = 3*DPI
+ESC_TOOTH_HEIGHT = 0.5*DPI
+ESC_TOOTH_COUNT = 30
+ESC_FILLET_POINT_COUNT = 10
+ESC_CREST_FILLET_RADIUS = 0.02*DPI
+ESC_TROUGH_FILLET_RADIUS = 0.08*DPI
+
 UNSCALED_ROOT_RADIUS = 3 * DPI
 UNSCALED_TOOTH_HEIGHT = 1 * DPI
 UNSCALED_OFFSET = 50.0/72 * DPI
@@ -42,8 +50,6 @@ FRONT_ANGLE_TIP_DEG = 10
 BACK_ANGLE_TIP_DEG = 22
 ESCAPEMENT_CENTER = Vector(0, 0)
 VERGE_CENTER = ESCAPEMENT_CENTER + Vector(0, -UNSCALED_TOTAL_OFFSET*SCALE)
-
-BOX_MARGIN = 1*DPI
 
 VERGE_WIDTH = 0.25 * DPI * SCALE
 DROP_DISTANCE = 0.14 * DPI * SCALE
@@ -107,7 +113,7 @@ def add_arc(p, begin_deg, end_deg, radius):
         rad = deg*DEG_TO_RAD
         p.append(Vector(cos(rad), sin(rad))*radius)
 
-def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radius, cz):
+def generate_escapement_wheel_old(color, center, angle_offset_deg, speed, hole_radius, cz):
     # Angle where the arc ends and the tooth starts.
     front_angle_deg = find_tooth_angle(ROOT_RADIUS, TOOTH_HEIGHT, FRONT_ANGLE_TIP_DEG)
 
@@ -151,6 +157,85 @@ def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radiu
         "type": "escapement_wheel",
         "color": color,
         "points": [(v.x, v.y) for v in p],
+        "cx": center.x,
+        "cy": center.y,
+        "cz": cz,
+        "speed": speed,
+        "hole_radius": hole_radius,
+    }
+    return piece
+
+def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radius, cz):
+    # We're making a triangle tooth but with fillets on both the crest and the
+    # trough. Throughout this code, variables that end with "c" are for the
+    # crest, those that end with "t" are for the trough.
+
+    # Angle of entire tooth.
+    tooth_angle = TAU/ESC_TOOTH_COUNT
+
+    # Radial distance to crest and trough fillet circle centers.
+    rdc = ESC_RADIUS + (ESC_TOOTH_HEIGHT - ESC_CREST_FILLET_RADIUS)/2;
+    rdt = ESC_RADIUS - (ESC_TOOTH_HEIGHT - ESC_TROUGH_FILLET_RADIUS)/2;
+
+    # Centers of the crest and trough circles.
+    cc = Vector(rdc, 0)
+    ct = Vector(rdt, 0).rotated(tooth_angle/2)
+
+    # Now we need to know how much of these circles to draw. We need to draw
+    # just enough so that the remaining line segment between them is tangent
+    # to both circles. One way to determine a line tangent to two circles is
+    # to determine a line between the center of one circle and an imaginary
+    # circle that's centered on the other circle and the sum of the two
+    # radii. This pretend circle will have the suffix "p".
+    rp = ESC_CREST_FILLET_RADIUS + ESC_TROUGH_FILLET_RADIUS
+
+    # If our pretend circle is centered on the crest fillet, then we have a
+    # triangle with these three points: (1) The center of the trough triangle,
+    # (2) the center of the crest triangle, and (3) the point on the pretend
+    # circle. The angle at point 3 is a right angle, since line (1-3) is
+    # tangent to our pretend circle. We must calculate the angle at point 2.
+    hyp = (cc - ct).length()
+    angle = acos(rp / hyp)
+
+    # This angle is independent of the relative orientation of our two fillets,
+    # but for us we need to know the absolute angle. We therefore subtract it
+    # from the angle between the two centers.
+    angle = (ct - cc).angle() - angle
+
+    # Make the points for each tooth.
+    tooth_points = []
+
+    # Fillet for the crest.
+    for i in range(ESC_FILLET_POINT_COUNT):
+        t = float(i)/(ESC_FILLET_POINT_COUNT - 1)
+        theta = -angle + t*angle*2
+        tooth_points.append(cc + Vector.circle(theta)*ESC_CREST_FILLET_RADIUS)
+
+    # Fillet for the trough.
+    for i in range(ESC_FILLET_POINT_COUNT):
+        t = float(i)/(ESC_FILLET_POINT_COUNT - 1)
+        # We have to subtract tooth_angle here because the math above
+        # does not take into account that the two circles repeat
+        # in a circle.
+        theta = angle - t*(angle*2 - tooth_angle) + pi
+        tooth_points.append(ct + Vector.circle(theta)*ESC_TROUGH_FILLET_RADIUS)
+
+    # Stamp each tooth.
+    p = []
+    for tooth in range(ESC_TOOTH_COUNT):
+        # Transform to tooth position.
+        phi = tooth*tooth_angle + angle_offset_deg*DEG_TO_RAD
+
+        for v in tooth_points:
+            p.append(v.rotated(phi))
+
+    # Close curve.
+    p.append(p[0])
+
+    piece = {
+        "type": "escapement_wheel",
+        "color": color,
+        "points": [v.to_pair() for v in p],
         "cx": center.x,
         "cy": center.y,
         "cz": cz,
@@ -292,7 +377,7 @@ def generate(data, position_type, origin, speed, hole_radius, cz=0):
                 ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT, False)
         verge_angle_offset -= VERGE_RIGHT_OUTER_DEG
 
-    piece = generate_escapement_wheel("#FF0000",
+    piece = generate_escapement_wheel("#FF6666",
             origin + ESCAPEMENT_CENTER, escapement_angle_offset, speed, hole_radius, cz)
     bind.add_bind_info(piece)
     data["pieces"].append(piece)

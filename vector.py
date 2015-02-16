@@ -13,14 +13,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-# Of course I didn't make it far without making a vector class.
-
 from math import sqrt, sin, cos, atan2
 
+# 2D vector class.
 class Vector:
     @staticmethod
     def from_pair(p):
         return Vector(p[0], p[1])
+
+    @staticmethod
+    def circle(t):
+        return Vector(cos(t), sin(t))
 
     def __init__(self, x, y):
         self.x = float(x)
