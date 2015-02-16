@@ -22,6 +22,10 @@ var g_time = 0.0;
 var g_sim_speed = 1.0;
 var g_previous_date = null;
 
+// Globals for the scene.
+var g_scene = null;
+var g_objects = [];
+
 // Simulate the motion of the escapement.
 var escapedTime = function (time) {
     var integer = Math.floor(time);
@@ -33,19 +37,27 @@ var escapedTime = function (time) {
     return integer + fraction;
 };
 
-var keydown = function (event) {
+var onKeyDown = function (event) {
     // Minute hand goes around in one minute instead of one hour.
-    if (event.keyCode === 49) { // "1"
-        g_sim_speed = 60;
+    if (event.keyCode === 48) { // "0"
+        g_sim_speed = 0;
+    } else if (event.keyCode === 49) { // "1"
+        g_sim_speed = 1;
     } else if (event.keyCode === 50) { // "2"
+        g_sim_speed = 60;
+    } else if (event.keyCode === 51) { // "3"
         g_sim_speed = 60*12;
+    } else if (event.keyCode === 82) { // "r"
+        // Reload.
+        fetchData();
+    } else {
+        console.log(event.keyCode);
     }
-    window.removeEventListener("keydown", keydown);
+    window.removeEventListener("keydown", onKeyDown);
 };
 
-var keyup = function (event) {
-    g_sim_speed = 1;
-    window.addEventListener("keydown", keydown, false);
+var onKeyUp = function (event) {
+    window.addEventListener("keydown", onKeyDown, false);
 };
 
 var closeEnough = function (a, b) {
@@ -83,21 +95,93 @@ var findHole = function (holes, x, y) {
     return null;
 }
 
-var startRendering = function (data) {
-    var pieces = data.pieces;
-
-    var scene = new THREE.Scene();
-
+var initializeThree = function () {
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
-    window.addEventListener("keydown", keydown, false);
-    window.addEventListener("keyup", keyup, false);
+
+    g_scene = new THREE.Scene();
+
+    window.addEventListener("keydown", onKeyDown, false);
+    window.addEventListener("keyup", onKeyUp, false);
+
+    // Create our camera.
+    var centerOfScene = new THREE.Vector3(1100, -400, 0);
+    var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 10, 10000);
+    camera.position.x = centerOfScene.x + 1300;
+    camera.position.y = centerOfScene.y + 1300;
+    camera.position.z = centerOfScene.z + 1300;
+    camera.lookAt(centerOfScene);
+
+    // Create the trackball controller.
+    var controls = new THREE.Trackball(camera);
+    controls.setTarget(centerOfScene);
+
+    var onWindowResize = function () {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        controls.handleResize();
+    };
+    window.addEventListener("resize", onWindowResize, false);
+
+    var render = function () {
+        requestAnimationFrame(render);
+
+        // Advance time.
+        var now = new Date();
+        if (g_previous_date !== null) {
+            var millis = now - g_previous_date;
+            g_time += millis * g_sim_speed / 1000;
+        }
+        g_previous_date = now;
+
+        // Rotate the gears.
+        for (var object_index in g_objects) {
+            var object = g_objects[object_index];
+            var piece = object.piece;
+            var object3d = object.object3d;
+            var theta;
+
+            if (piece.type === "verge") {
+                // Map two seconds to TAU (one cycle), then Sine that, map to 0 to 1.
+                var span = Math.sin(g_time/2*TAU)/2 + 0.5;
+                span /= 2;
+                var left_full_in_angle = piece.left_full_in_angle*TAU/360;
+                var right_full_in_angle = piece.right_full_in_angle*TAU/360;
+                theta = span*(left_full_in_angle - right_full_in_angle) + right_full_in_angle;
+            } else if (piece.type === "axle") {
+                // Axles don't turn.
+                theta = 0;
+            } else {
+                // 43200 = 12 hours' worth of seconds.
+                theta = escapedTime(g_time) * TAU / 43200 * piece.speed;
+            }
+
+            // Negate theta because our Y is upside down.
+            object3d.rotation.z = -theta;
+        }
+
+        // Update camera position.
+        controls.update();
+
+        // Render the scene.
+        renderer.render(g_scene, camera);
+    };
+
+    render();
+};
+
+var startRendering = function (data) {
+    var pieces = data.pieces;
+
+    // New scene.
+    g_scene = new THREE.Scene();
 
     // Each object has two keys:
     //    object3d: the THREE.Object3D object.
     //    piece: the piece (gear, axle, etc.).
-    var objects = [];
+    g_objects = [];
 
     // List of holes we've seen. Each item is an object with keys:
     //    x, y: center of holes.
@@ -178,8 +262,8 @@ var startRendering = function (data) {
         gearObject.position.y = cy;
         gearObject.position.z = cz;
 
-        scene.add(gearObject);
-        objects.push({
+        g_scene.add(gearObject);
+        g_objects.push({
             object3d: gearObject,
             piece: gear
         });
@@ -195,87 +279,24 @@ var startRendering = function (data) {
         axle.position.x = hole.x;
         axle.position.y = hole.y;
         axle.position.z = 0;
-        scene.add(axle);
-        objects.push({
+        g_scene.add(axle);
+        g_objects.push({
             object3d: axle,
             piece: hole
         });
     }
-
-    // Create our camera.
-    var centerOfScene = new THREE.Vector3(1100, -400, 0);
-    var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 10, 10000);
-    camera.position.x = centerOfScene.x + 1300;
-    camera.position.y = centerOfScene.y + 1300;
-    camera.position.z = centerOfScene.z + 1300;
-    camera.lookAt(centerOfScene);
-
-    // Create the trackball controller.
-    var controls = new THREE.Trackball(camera);
-    controls.setTarget(centerOfScene);
-
-    var render = function () {
-        requestAnimationFrame(render);
-
-        // Advance time.
-        var now = new Date();
-        if (g_previous_date !== null) {
-            var millis = now - g_previous_date;
-            g_time += millis * g_sim_speed / 1000;
-        }
-        g_previous_date = now;
-
-        // Rotate the gears.
-        for (var object_index in objects) {
-            var object = objects[object_index];
-            var piece = object.piece;
-            var object3d = object.object3d;
-            var theta;
-
-            if (piece.type === "verge") {
-                // Map two seconds to TAU (one cycle), then Sine that, map to 0 to 1.
-                var span = Math.sin(g_time/2*TAU)/2 + 0.5;
-                span /= 2;
-                var left_full_in_angle = piece.left_full_in_angle*TAU/360;
-                var right_full_in_angle = piece.right_full_in_angle*TAU/360;
-                theta = span*(left_full_in_angle - right_full_in_angle) + right_full_in_angle;
-            } else if (piece.type === "axle") {
-                // Axles don't turn.
-                theta = 0;
-            } else {
-                // 43200 = 12 hours' worth of seconds.
-                theta = escapedTime(g_time) * TAU / 43200 * piece.speed;
-            }
-
-            // Negate theta because our Y is upside down.
-            object3d.rotation.z = -theta;
-        }
-
-        // Update camera position.
-        controls.update();
-
-        // Keep camera pointing up so we don't get disoriented.
-        camera.up = new THREE.Vector3(0, 1, 0);
-
-        // Render the scene.
-        renderer.render(scene, camera);
-    };
-
-    var onWindowResize = function () {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        controls.handleResize();
-    };
-    window.addEventListener("resize", onWindowResize, false);
-
-    render();
 };
 
-$(function () {
+// Fetch the JSON data from the net and display it.
+var fetchData = function () {
     $.getJSON("clock.json", function (data) {
         startRendering(data);
     });
+};
+
+$(function () {
+    initializeThree();
+    fetchData();
 });
 
 })();
