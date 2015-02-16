@@ -32,6 +32,7 @@ def main():
     data = {
         "material_thickness": MATERIAL_THICKNESS,
         "dpi": DPI,
+        "large_bolt_radius": TIGHT_LARGE_BOLT_RADIUS,
         "pieces": [],
     }
 

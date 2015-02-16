@@ -17,9 +17,6 @@
 
 var TAU = 2*Math.PI;
 
-// We use 5/16 bolts.
-var AXEL_RADIUS = 5.0/16/2;
-
 // For keeping track of simulation time.
 var g_time = 0.0;
 var g_sim_speed = 1.0;
@@ -194,7 +191,7 @@ var startRendering = function (data) {
         var hole = holes[i];
 
         var axle = new THREE.Object3D();
-        addCylinder(0, 0, minZ - 60, maxZ + 80, AXEL_RADIUS*data.dpi, 20, material, axle);
+        addCylinder(0, 0, minZ - 60, maxZ + 80, data.large_bolt_radius, 20, material, axle);
         axle.position.x = hole.x;
         axle.position.y = hole.y;
         axle.position.z = 0;

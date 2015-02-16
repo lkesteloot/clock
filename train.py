@@ -30,13 +30,13 @@ WEST = 3
 SEPARATOR_HOLE_SHRINK = 1.0/16
 
 COLORS = [
-        "#FF0000",
-        "#00FF00",
-        "#0000FF",
-        "#FFFFFF",
-        "#CCCC00",
-        "#00CCCC",
-        "#CC00CC",
+        "#FF6666",
+        "#66FF66",
+        "#6666FF",
+        "#DDDDDD",
+        "#CCCC66",
+        "#66CCCC",
+        "#CC66CC",
 ]
 
 class GearTrain:

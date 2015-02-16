@@ -17,6 +17,8 @@ import math
 
 from config import LOOSE_BIND_BOLT_RADIUS, BIND_DISTANCE, BIND_COUNT, TAU
 
+# Add information to a piece to allow the six binding holes to be made
+# that keep gears moving together.
 def add_bind_info(piece):
     centers = []
     for i in range(BIND_COUNT):
