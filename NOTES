@@ -1,10 +1,7 @@
 
 To do:
-    New escapement:
-        Smaller pendulum swing angle.
-        No sharp points.
-        Currently have 30 teeth. Michael's has 15, but that would require redesigning
-            gear train.
+    Redesign verge.
+    Smaller pendulum swing angle.
     Incorporate lessons from the first prototype.
         Slightly more room in the binding holes. Otherwise it's hard to insert the bolts.
         The nuts of the binders run into the other gears, especially if the bolts of the

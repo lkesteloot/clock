@@ -51,7 +51,7 @@ var onKeyDown = function (event) {
         // Reload.
         fetchData();
     } else {
-        console.log(event.keyCode);
+        /// console.log(event.keyCode);
     }
     window.removeEventListener("keydown", onKeyDown);
 };

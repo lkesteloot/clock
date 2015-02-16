@@ -40,7 +40,7 @@ def main():
     gear_train = train.GearTrain(data, 6*DPI, HEIGHT/2, MODULE)
 
     # Hour hand:
-    gear_train.add_gear(64, None, LOOSE_LARGE_BOLT_RADIUS, cz=0, suppress=True)
+    gear_train.add_gear(64, None, LOOSE_LARGE_BOLT_RADIUS, cz=0)
     gear_train.add_gear(16, train.WEST, BEARING_RADIUS, cz=0)
 
     gear_train.add_gear(60, None, BEARING_RADIUS, cz=2)
@@ -50,26 +50,24 @@ def main():
     gear_train.add_gear(60, None, BEARING_RADIUS, cz=4)
     gear_train.add_gear(20, train.EAST, BEARING_RADIUS, cz=4)
 
-    mid1_holder_x = gear_train.cx
-
     gear_train.add_gear(49, None, BEARING_RADIUS, cz=2)
     gear_train.add_gear(20, train.EAST, BEARING_RADIUS, cz=2)
-
-    mid2_holder_x = gear_train.cx
 
     gear_train.add_gear(60, None, BEARING_RADIUS, cz=0)
     gear_train.add_gear(21, train.EAST, BEARING_RADIUS, cz=0)
 
-    mid2_holder_x = (mid2_holder_x + gear_train.cx)/2
-
     gear_train.add_gear(60, None, BEARING_RADIUS, cz=4)
     gear_train.add_gear(21, train.EAST, BEARING_RADIUS, cz=4)
 
+    gear_train.add_gear(40, None, BEARING_RADIUS, cz=2)
+    gear_train.add_gear(20, train.SOUTH, BEARING_RADIUS, cz=2)
+
     # Separator to escapement.
-    gear_train.add_separators(2, BEARING_RADIUS)
+    escapement_cz = 0
+    gear_train.add_separators(escapement_cz, BEARING_RADIUS)
 
     # Add escapement.
-    escapement.generate(data, 0, Vector(gear_train.cx, gear_train.cy), gear_train.speed, BEARING_RADIUS, cz=2)
+    escapement.generate(data, 0, Vector(gear_train.cx, gear_train.cy), gear_train.speed, BEARING_RADIUS, cz=escapement_cz)
 
     # Add frame.
     frame.generate(data, "#00FF00")
