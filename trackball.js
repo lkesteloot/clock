@@ -104,7 +104,7 @@ THREE.Trackball = function (camera, domElement) {
     window.addEventListener('keyup', this._onKeyUp.bind(this), false);
 
     // Figure our the size of our window.
-    this._handleResize();
+    this.handleResize();
 
     // Force an update at start.
     this.update();
@@ -125,7 +125,8 @@ THREE.Trackball.prototype._getKeyboardState = function () {
     return state;
 };
 
-THREE.Trackball.prototype._handleResize = function () {
+// Client must call this when the window is resized.
+THREE.Trackball.prototype.handleResize = function () {
     if (this._domElement === document) {
         this.screen.left = 0;
         this.screen.top = 0;
