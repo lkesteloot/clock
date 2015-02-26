@@ -67,7 +67,7 @@ def main():
     gear_train.add_separators(escapement_cz, BEARING_RADIUS)
 
     # Add escapement.
-    escapement.generate(data, 0, Vector(gear_train.cx, gear_train.cy), gear_train.speed, BEARING_RADIUS, cz=escapement_cz)
+    escapement.generate(data, Vector(gear_train.cx, gear_train.cy), gear_train.speed, BEARING_RADIUS, cz=escapement_cz)
 
     # Add frame.
     frame.generate(data, "#00FF00")

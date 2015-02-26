@@ -13,165 +13,57 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import sys
-import argparse
 from math import sin, cos, tan, sqrt, pi, atan, floor, acos
 
 from vector import Vector
 from config import DPI, TAU
 import bind
-
-WIDTH = 16 * DPI
-HEIGHT = 12 * DPI
+import draw
 
 DEG_TO_RAD = pi/180
 RAD_TO_DEG = 1/DEG_TO_RAD
-
-# Dimensions are in points.
-VERT_DIST_PT = 312   # Get this from the output of gear.py
 
 # Escapement wheel parameters.
 ESC_RADIUS = 2*DPI
 ESC_TOOTH_HEIGHT = 0.5*DPI
 ESC_TOOTH_COUNT = 15
+ESC_TOOTH_ANGLE = TAU/ESC_TOOTH_COUNT
 ESC_FILLET_POINT_COUNT = 10
 ESC_CREST_FILLET_RADIUS = 0.04*DPI
 ESC_TROUGH_FILLET_RADIUS = 0.06*DPI
 
-UNSCALED_ROOT_RADIUS = 3 * DPI
-UNSCALED_TOOTH_HEIGHT = 1 * DPI
-UNSCALED_OFFSET = 50.0/72 * DPI
-UNSCALED_TOTAL_OFFSET = UNSCALED_ROOT_RADIUS + UNSCALED_TOOTH_HEIGHT*2 + UNSCALED_OFFSET
-SCALE = float(VERT_DIST_PT) / UNSCALED_TOTAL_OFFSET
-ROOT_RADIUS = UNSCALED_ROOT_RADIUS * SCALE
-TOOTH_HEIGHT = UNSCALED_TOOTH_HEIGHT * SCALE
-TOOTH_CLIP = 0.90
-FRONT_ANGLE_TIP_DEG = 10
-BACK_ANGLE_TIP_DEG = 22
-ESCAPEMENT_CENTER = Vector(0, 0)
-VERGE_CENTER = ESCAPEMENT_CENTER + Vector(0, -UNSCALED_TOTAL_OFFSET*SCALE)
+# Offset of verge center from escapement center.
+VERGE_OFFSET = Vector(0, 5*DPI)
 
-VERGE_WIDTH = 0.25 * DPI * SCALE
-DROP_DISTANCE = 0.14 * DPI * SCALE
-VERGE_SMALL_RADIUS = 1 * DPI * SCALE
-VERGE_LEFT_INNER_RADIUS = 4.25 * DPI * SCALE
-VERGE_LEFT_OUTER_RADIUS = VERGE_LEFT_INNER_RADIUS + VERGE_WIDTH
-SPREAD_DEG = 43
-DEPTH_DEG = 15
-VERGE_LEFT_INNER_DEG = 270 - SPREAD_DEG
-VERGE_LEFT_OUTER_DEG = VERGE_LEFT_INNER_DEG - 2
-VERGE_LEFT_BACK_DEG = VERGE_LEFT_INNER_DEG - DEPTH_DEG
-VERGE_RIGHT_INNER_RADIUS = VERGE_LEFT_INNER_RADIUS + DROP_DISTANCE
-VERGE_RIGHT_OUTER_RADIUS = VERGE_RIGHT_INNER_RADIUS + VERGE_WIDTH
-VERGE_RIGHT_INNER_DEG = 270 + SPREAD_DEG
-VERGE_RIGHT_OUTER_DEG = VERGE_RIGHT_INNER_DEG - 2
-VERGE_RIGHT_BACK_DEG = VERGE_RIGHT_INNER_DEG + DEPTH_DEG
-VERGE_STEP_DEG = 1
+# Angle around escapement where the points are.
+VERGE_ANGLE = ESC_TOOTH_ANGLE*5.5
+VERGE_LEFT_ANGLE = TAU/4 + VERGE_ANGLE/2
+VERGE_RIGHT_ANGLE = TAU/4 - VERGE_ANGLE/2
 
-VERGE_RIGHT_INNER_FRONT_DEG = VERGE_RIGHT_BACK_DEG - int(VERGE_WIDTH*180/(pi*VERGE_RIGHT_INNER_RADIUS))
-VERGE_LEFT_INNER_FRONT_DEG = VERGE_LEFT_BACK_DEG + int(VERGE_WIDTH*180/(pi*VERGE_LEFT_INNER_RADIUS))
-VERGE_RIGHT_SMALL_FRONT_DEG = VERGE_RIGHT_BACK_DEG - int(VERGE_WIDTH/2*180/(pi*VERGE_SMALL_RADIUS))
-VERGE_LEFT_SMALL_FRONT_DEG = VERGE_LEFT_BACK_DEG + int(VERGE_WIDTH/2*180/(pi*VERGE_SMALL_RADIUS))
-VERGE_RIGHT_SMALL_BACK_DEG = VERGE_RIGHT_BACK_DEG + int(VERGE_WIDTH/2*180/(pi*VERGE_SMALL_RADIUS))
-VERGE_LEFT_SMALL_BACK_DEG = VERGE_LEFT_BACK_DEG - int(VERGE_WIDTH/2*180/(pi*VERGE_SMALL_RADIUS))
+# Distance from center of escapement to points.
+VERGE_POINT_RADIUS = ESC_RADIUS*1.1
 
-# Given a tooth description and the tooth angle from radial (from tip), returns
-# the angle from the center of the wheel. I couldn't find a closed form for
-# this, so we just look for it.
-def find_tooth_angle(root_radius, tooth_height, tooth_angle_tip_deg):
-    low_rad = 0
-    high_rad = pi/4
+# Height of verge tooth.
+VERGE_TOOTH_HEIGHT = 0.5*DPI
 
-    for i in range(10):
-        mid_rad = (low_rad + high_rad) / 2
-        c = root_radius * cos(mid_rad)
-        s = root_radius * sin(mid_rad)
+# Width of verge tooth.
+VERGE_TOOTH_WIDTH = 1*DPI
 
-        candidate_tooth_angle_tip_rad = atan(s / (root_radius + tooth_height - c))
-        candidate_tooth_angle_tip_deg = candidate_tooth_angle_tip_rad * RAD_TO_DEG
+# Length of control vectors between the teeth.
+VERGE_CTRL = 1.5*DPI
 
-        if candidate_tooth_angle_tip_deg > tooth_angle_tip_deg:
-            high_rad = mid_rad
-        else:
-            low_rad =  mid_rad
+# Offset and Bezier control vector for middle control point.
+VERGE_MIDDLE_OFFSET = Vector(1.5*DPI, -1*DPI)
+VERGE_MIDDLE_CTRL = Vector(1*DPI, -1*DPI)
 
-    tooth_angle_deg = int(floor((low_rad + high_rad) / 2 * RAD_TO_DEG + 0.5))
-
-    sys.stderr.write("find_tooth_angle(%g) = %g\n" % (tooth_angle_tip_deg, tooth_angle_deg))
-
-    return tooth_angle_deg
-
-def auto_range(begin, end):
-    if begin <= end:
-        return range(begin, end + 1)
-    else:
-        return range(begin, end - 1, -1)
-
-def add_arc(p, begin_deg, end_deg, radius):
-    sys.stderr.write("Drawing from %d to %d at %g\n" % (begin_deg, end_deg, radius) )
-    for deg in auto_range(begin_deg, end_deg):
-        rad = deg*DEG_TO_RAD
-        p.append(Vector(cos(rad), sin(rad))*radius)
-
-def generate_escapement_wheel_old(color, center, angle_offset_deg, speed, hole_radius, cz):
-    # Angle where the arc ends and the tooth starts.
-    front_angle_deg = find_tooth_angle(ROOT_RADIUS, TOOTH_HEIGHT, FRONT_ANGLE_TIP_DEG)
-
-    # Angle when the tooth ends and the arc starts. Larger than front_angle_deg.
-    back_angle_deg = find_tooth_angle(ROOT_RADIUS, TOOTH_HEIGHT, BACK_ANGLE_TIP_DEG)
-
-    # Make the points for each tooth.
-    tooth_points = []
-
-    # Start at previous tooth's end of tooth. That's our end of tooth minus one
-    # tooth's worth of degrees.
-    add_arc(tooth_points, back_angle_deg - 360/NUM_TEETH, front_angle_deg, ROOT_RADIUS)
-
-    # The tip of the tooth is at zero degrees. Start where the arc ended and go
-    # TOOTH_CLIP of the way to the tip.
-    rad = front_angle_deg*DEG_TO_RAD
-    end_of_arc = Vector(cos(rad), sin(rad))*ROOT_RADIUS
-    tip_of_tooth = Vector(ROOT_RADIUS + TOOTH_HEIGHT, 0.0)
-    tooth_points.append(end_of_arc + (tip_of_tooth - end_of_arc)*TOOTH_CLIP)
-
-    # Move over a bit for the clipped tooth. Interpolate like we did just now,
-    # but go to the start of the arc.
-    rad = back_angle_deg*DEG_TO_RAD
-    start_of_arc = Vector(cos(rad), sin(rad))*ROOT_RADIUS
-    tooth_points.append(start_of_arc + (tip_of_tooth - start_of_arc)*TOOTH_CLIP)
-
-    # Draw each tooth.
-    p = []
-    for tooth in range(NUM_TEETH):
-        # Transform to tooth position.
-        phi = tooth*2*pi/NUM_TEETH + angle_offset_deg*DEG_TO_RAD
-
-        for v in tooth_points:
-            # Flip X so that the teeth are pointing the right way.
-            p.append(v.rotated(phi).flipX())
-
-    # Close curve.
-    p.append(p[0])
-
-    piece = {
-        "type": "escapement_wheel",
-        "color": color,
-        "points": [(v.x, v.y) for v in p],
-        "cx": center.x,
-        "cy": center.y,
-        "cz": cz,
-        "speed": speed,
-        "hole_radius": hole_radius,
-    }
-    return piece
+# Offset and Bezier control vector for bottom control point.
+VERGE_BOTTOM_OFFSET = Vector(0, 8*DPI)
+VERGE_BOTTOM_CTRL = Vector(1*DPI, 0)
 
 def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radius, cz):
     # We're making a triangle tooth but with fillets on both the crest and the
     # trough. Throughout this code, variables that end with "c" are for the
     # crest, those that end with "t" are for the trough.
-
-    # Angle of entire tooth.
-    tooth_angle = TAU/ESC_TOOTH_COUNT
 
     # Radial distance to crest and trough fillet circle centers.
     rdc = ESC_RADIUS + (ESC_TOOTH_HEIGHT - ESC_CREST_FILLET_RADIUS)/2;
@@ -179,7 +71,7 @@ def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radiu
 
     # Centers of the crest and trough circles.
     cc = Vector(rdc, 0)
-    ct = Vector(rdt, 0).rotated(tooth_angle/2)
+    ct = Vector(rdt, 0).rotated(ESC_TOOTH_ANGLE/2)
 
     # Now we need to know how much of these circles to draw. We need to draw
     # just enough so that the remaining line segment between them is tangent
@@ -217,14 +109,14 @@ def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radiu
         # We have to subtract tooth_angle here because the math above
         # does not take into account that the two circles repeat
         # in a circle.
-        theta = angle - t*(angle*2 - tooth_angle) + pi
+        theta = angle - t*(angle*2 - ESC_TOOTH_ANGLE) + pi
         tooth_points.append(ct + Vector.circle(theta)*ESC_TROUGH_FILLET_RADIUS)
 
     # Stamp each tooth.
     p = []
     for tooth in range(ESC_TOOTH_COUNT):
         # Transform to tooth position.
-        phi = tooth*tooth_angle + angle_offset_deg*DEG_TO_RAD
+        phi = tooth*ESC_TOOTH_ANGLE + angle_offset_deg*DEG_TO_RAD
 
         for v in tooth_points:
             p.append(v.rotated(phi))
@@ -244,173 +136,86 @@ def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radiu
     }
     return piece
 
-def generate_verge(color, center, angle_offset_deg, speed, hole_radius, cz):
-    left_full_in_angle, _, _ = find_intersection_rotation(
-            VERGE_CENTER, VERGE_LEFT_OUTER_RADIUS,
-            ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT, True)
-    left_full_in_angle -= VERGE_LEFT_BACK_DEG
-    right_full_in_angle, _, _ = find_intersection_rotation(
-            VERGE_CENTER, VERGE_RIGHT_INNER_RADIUS,
-            ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT, False)
-    right_full_in_angle -= VERGE_RIGHT_INNER_FRONT_DEG
+def generate_verge(color, esc_center, speed, hole_radius, cz):
+    # esc_center is the center of the escapement. Come up with our own center.
+    center = esc_center + VERGE_OFFSET
+
+    zero = Vector(VERGE_POINT_RADIUS, 0)
+    left_point = esc_center + zero.rotated(VERGE_LEFT_ANGLE)
+    right_point = esc_center + zero.rotated(VERGE_RIGHT_ANGLE)
+
+    left_base = (left_point - esc_center).normalized()*VERGE_TOOTH_HEIGHT
+    right_base = (right_point - esc_center).normalized()*VERGE_TOOTH_HEIGHT
+
+    left_out = left_point + left_base + left_base.reciprocal().normalized()*VERGE_TOOTH_WIDTH/2
+    left_in = left_point + left_base - left_base.reciprocal().normalized()*VERGE_TOOTH_WIDTH/2
+
+    right_out = right_point + right_base - right_base.reciprocal().normalized()*VERGE_TOOTH_WIDTH/2
+    right_in = right_point + right_base + right_base.reciprocal().normalized()*VERGE_TOOTH_WIDTH/2
 
     p = []
-    add_arc(p, VERGE_RIGHT_BACK_DEG, VERGE_RIGHT_OUTER_DEG, VERGE_RIGHT_OUTER_RADIUS)
-    add_arc(p, VERGE_RIGHT_INNER_DEG, VERGE_RIGHT_INNER_FRONT_DEG, VERGE_RIGHT_INNER_RADIUS)
-    add_arc(p, VERGE_RIGHT_SMALL_FRONT_DEG, VERGE_LEFT_SMALL_FRONT_DEG, VERGE_SMALL_RADIUS)
-    add_arc(p, VERGE_LEFT_INNER_FRONT_DEG, VERGE_LEFT_INNER_DEG, VERGE_LEFT_INNER_RADIUS)
-    add_arc(p, VERGE_LEFT_OUTER_DEG, VERGE_LEFT_BACK_DEG, VERGE_LEFT_OUTER_RADIUS)
-    add_arc(p, VERGE_LEFT_SMALL_BACK_DEG, VERGE_RIGHT_SMALL_BACK_DEG - 360, VERGE_SMALL_RADIUS)
 
-    # Close shape.
-    p.append(p[0])
+    # Left tooth.
+    p.append(left_out)
+    p.append(left_point)
+    p.append(left_in)
 
-    # Rotate and translate to position, flip Y vertically.
-    phi = angle_offset_deg*DEG_TO_RAD
-    # Flip X so that the teeth are pointing the right way.
-    p = [v.rotated(phi).flipX() for v in p]
+    # Between teeth.
+    left_ctrl = left_in + (left_in - left_point).normalized()*VERGE_CTRL
+    right_ctrl = right_in + (right_in - right_point).normalized()*VERGE_CTRL
+    draw.add_bezier(p, left_in, left_ctrl, right_ctrl, right_in, 100)
+
+    # Right tooth.
+    p.append(right_in)
+    p.append(right_point)
+    p.append(right_out)
+
+    # Path to right of right tooth.
+    ctrl = right_out + (right_out - right_point).normalized()*VERGE_CTRL
+    middle = center + VERGE_MIDDLE_OFFSET
+    draw.add_bezier(p, right_out, ctrl, middle + VERGE_MIDDLE_CTRL, middle, 100)
+
+    # Path to bottom.
+    bottom = center + VERGE_BOTTOM_OFFSET
+    draw.add_bezier(p, middle, middle - VERGE_MIDDLE_CTRL, bottom + VERGE_BOTTOM_CTRL, bottom, 100)
+
+    # Path back from bottom on left.
+    middle = center + VERGE_MIDDLE_OFFSET.flipX()
+    draw.add_bezier(p, bottom, bottom - VERGE_BOTTOM_CTRL, middle - VERGE_MIDDLE_CTRL.flipX(), middle, 100)
+
+    # Path to the left of left tooth.
+    ctrl = left_out + (left_out - left_point).normalized()*VERGE_CTRL
+    draw.add_bezier(p, middle, middle + VERGE_MIDDLE_CTRL.flipX(), ctrl, left_out, 100)
+
+    # Normalize to our own center.
+    p = [v - center for v in p]
 
     piece = {
         "type": "verge",
         "color": color,
-        "points": [(v.x, v.y) for v in p],
+        "points": [v.to_pair() for v in p],
         "cx": center.x,
         "cy": center.y,
         "cz": cz,
         "speed": speed,
         "hole_radius": hole_radius,
-        "left_full_in_angle": left_full_in_angle,
-        "right_full_in_angle": right_full_in_angle,
+        "left_full_in_angle": -4,
+        "right_full_in_angle": 4,
     }
     return piece
 
-# Return the angle in degrees that circle 1 (at center c1, radius r1) would have
-# to rotate so that the point at (r1,0) were on circle 2 (at center c2, radius r2).
-def find_intersection_rotation(c1, r1, c2, r2, turn_right):
-    # Distance between circle centers.
-    d = (c2 - c1).length()
-    sys.stderr.write("d = " + str(d) + "\n")
+# "origin" is the center of the escapement wheel.
+def generate(data, origin, speed, hole_radius, cz=0):
+    # Home.
+    escapement_angle_offset = 4.0
 
-    # Distance to line going through intersecting points.
-    a = (r1**2 - r2**2 + d**2) / (2*d)
-    sys.stderr.write("a = " + str(a) + "\n")
-
-    # Distance from line connecting centers to intersecting points.
-    h = sqrt(r1**2 - a**2)
-    sys.stderr.write("h = " + str(h) + "\n")
-
-    # Point at intersection of both lines.
-    c = c1 + (c2 - c1)*a/d
-    sys.stderr.write("c = " + str(c) + "\n")
-
-    # Point at intersection that's a right-hand turn from circle 1.
-    turn_vector = (c2 - c1).reciprocal()*h/d
-    if turn_right:
-        p = c - turn_vector
-    else:
-        p = c + turn_vector
-    sys.stderr.write("p = " + str(p) + "\n")
-
-    # Find angle.
-    angle = (p - c1).angle()*RAD_TO_DEG
-    sys.stderr.write("angle = " + str(angle) + "\n")
-
-    return angle, c, p
-
-def generate(data, position_type, origin, speed, hole_radius, cz=0):
-    if position_type == 0:
-        # Home. Not very interesting.
-        escapement_angle_offset = 4.0
-        verge_angle_offset = -4.0
-    elif position_type == 1:
-        # Left fully in.
-        escapement_angle_offset, c, p = find_intersection_rotation(
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT,
-                VERGE_CENTER, VERGE_LEFT_OUTER_RADIUS, False)
-        verge_angle_offset, c, p = find_intersection_rotation(
-                VERGE_CENTER, VERGE_LEFT_OUTER_RADIUS,
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT, True)
-        verge_angle_offset -= VERGE_LEFT_BACK_DEG
-    elif position_type == 2:
-        # Left barely in.
-        escapement_angle_offset, c, p = find_intersection_rotation(
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT,
-                VERGE_CENTER, VERGE_LEFT_OUTER_RADIUS, False)
-        verge_angle_offset, c, p = find_intersection_rotation(
-                VERGE_CENTER, VERGE_LEFT_OUTER_RADIUS,
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT, True)
-        verge_angle_offset -= VERGE_LEFT_OUTER_DEG
-    elif position_type == 3:
-        # Left almost slipped off.
-        escapement_angle_offset, c, p = find_intersection_rotation(
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT,
-                VERGE_CENTER, VERGE_LEFT_INNER_RADIUS, False)
-        verge_angle_offset, c, p = find_intersection_rotation(
-                VERGE_CENTER, VERGE_LEFT_INNER_RADIUS,
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT, True)
-        verge_angle_offset -= VERGE_LEFT_INNER_DEG
-    elif position_type == 4:
-        # Right fully in.
-        escapement_angle_offset, c, p = find_intersection_rotation(
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT,
-                VERGE_CENTER, VERGE_RIGHT_INNER_RADIUS, True)
-        verge_angle_offset, c, p = find_intersection_rotation(
-                VERGE_CENTER, VERGE_RIGHT_INNER_RADIUS,
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT, False)
-        verge_angle_offset -= VERGE_RIGHT_INNER_FRONT_DEG
-    elif position_type == 5:
-        # Right barely in.
-        escapement_angle_offset, c, p = find_intersection_rotation(
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT,
-                VERGE_CENTER, VERGE_RIGHT_INNER_RADIUS, True)
-        verge_angle_offset, c, p = find_intersection_rotation(
-                VERGE_CENTER, VERGE_RIGHT_INNER_RADIUS,
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT, False)
-        verge_angle_offset -= VERGE_RIGHT_INNER_DEG
-    elif position_type == 6:
-        # Right almost slipped off.
-        escapement_angle_offset, c, p = find_intersection_rotation(
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT,
-                VERGE_CENTER, VERGE_RIGHT_OUTER_RADIUS, True)
-        verge_angle_offset, c, p = find_intersection_rotation(
-                VERGE_CENTER, VERGE_RIGHT_OUTER_RADIUS,
-                ESCAPEMENT_CENTER, ROOT_RADIUS + TOOTH_HEIGHT, False)
-        verge_angle_offset -= VERGE_RIGHT_OUTER_DEG
-
-    piece = generate_escapement_wheel("#FF6666",
-            origin + ESCAPEMENT_CENTER, escapement_angle_offset, speed, hole_radius, cz)
+    # Escapement wheel.
+    piece = generate_escapement_wheel("#FF6666", origin,
+            escapement_angle_offset, speed, hole_radius, cz)
     bind.add_bind_info(piece)
     data["pieces"].append(piece)
 
-    if False:
-        piece = generate_verge("#FF0000", origin + VERGE_CENTER, verge_angle_offset, speed, hole_radius, cz)
-        bind.add_bind_info(piece)
+    # Verge.
+    if True:
+        piece = generate_verge("#FF0000", origin, speed, hole_radius, cz)
         data["pieces"].append(piece)
-
-def main():
-    out = sys.stdout
-
-    parser = argparse.ArgumentParser(description='Generate escapement.')
-    parser.add_argument("--js", dest="output_type", action="store_const", const="js",
-            default="svg", help="generate JavaScript file")
-    parser.add_argument("--raw", dest="output_type", action="store_const", const="raw",
-            default="svg", help="generate raw file")
-    parser.add_argument("position_type", type=int, help="position of escapement to draw")
-
-    args = parser.parse_args()
-
-    origin = Vector(WIDTH/2, HEIGHT/2)
-
-    data = {
-        "pieces": [],
-    }
-
-    header(out, args.output_type)
-    generate(out, data, args.output_type, args.position_type, origin)
-    footer(out, args.output_type)
-
-    sys.stderr.write("Sanity check: Verge width*2 = %g, tooth spacing = %g\n" %
-            ((VERGE_WIDTH + DROP_DISTANCE)*2, 2*pi/NUM_TEETH*(ROOT_RADIUS + TOOTH_HEIGHT)))
-
-if __name__ == "__main__":
-    main()

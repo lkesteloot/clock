@@ -49,6 +49,7 @@ var onKeyDown = function (event) {
         g_sim_speed = 60*12;
     } else if (event.keyCode === 82) { // "r"
         // Reload.
+        console.log("Reloading");
         fetchData();
     } else {
         /// console.log(event.keyCode);
@@ -145,8 +146,7 @@ var initializeThree = function () {
 
             if (piece.type === "verge") {
                 // Map two seconds to TAU (one cycle), then Sine that, map to 0 to 1.
-                var span = Math.sin(g_time/2*TAU)/2 + 0.5;
-                span /= 2;
+                var span = Math.sin(g_time/2*TAU + 0.6)/2 + 0.5;
                 var left_full_in_angle = piece.left_full_in_angle*TAU/360;
                 var right_full_in_angle = piece.right_full_in_angle*TAU/360;
                 theta = span*(left_full_in_angle - right_full_in_angle) + right_full_in_angle;
@@ -154,8 +154,9 @@ var initializeThree = function () {
                 // Axles don't turn.
                 theta = 0;
             } else {
-                // 43200 = 12 hours' worth of seconds.
-                theta = escapedTime(g_time) * TAU / 43200 * piece.speed;
+                // 43200 = 12 hours' worth of seconds. The 0.4 adjustment is so
+                // that the verge matches up with the escapement wheel.
+                theta = (escapedTime(g_time) - 0.4) * TAU / 43200 * piece.speed;
             }
 
             // Negate theta because our Y is upside down.
