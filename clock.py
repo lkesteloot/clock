@@ -21,6 +21,7 @@ from config import DPI, WIDTH, HEIGHT, MODULE, TIGHT_LARGE_BOLT_RADIUS, LOOSE_LA
 import train
 import frame
 import escapement
+import pendulum
 from vector import Vector
 
 def main():
@@ -38,6 +39,7 @@ def main():
 
     # Full clock in place.
     gear_train = train.GearTrain(data, 6*DPI, HEIGHT/2, MODULE)
+    escapement_cz = 0
 
     # Hour hand:
     gear_train.add_gear(64, None, LOOSE_LARGE_BOLT_RADIUS, cz=0)
@@ -63,14 +65,17 @@ def main():
     gear_train.add_gear(20, train.SOUTH, BEARING_RADIUS, cz=2)
 
     # Separator to escapement.
-    escapement_cz = 0
     gear_train.add_separators(escapement_cz, BEARING_RADIUS)
 
     # Add escapement.
+    data["pieces"] = []
     escapement.generate(data, Vector(gear_train.cx, gear_train.cy), gear_train.speed, BEARING_RADIUS, cz=escapement_cz)
 
     # Add frame.
-    frame.generate(data, "#00FF00")
+    ## frame.generate(data, "#00FF00")
+
+    # Add pendulum.
+    pendulum.generate(data, "#0000FF")
 
     json.dump(data, sys.stdout, indent=4)
 

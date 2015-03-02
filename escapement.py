@@ -16,7 +16,7 @@
 from math import sin, cos, tan, sqrt, pi, atan, floor, acos
 
 from vector import Vector
-from config import DPI, TAU
+from config import DPI, TAU, TIGHT_LARGE_BOLT_RADIUS, PENDULUM_HOLE_SEPARATION
 import bind
 import draw
 
@@ -190,6 +190,21 @@ def generate_verge(color, esc_center, speed, hole_radius, cz):
     # Normalize to our own center.
     p = [v - center for v in p]
 
+    # Add holes at the bottom for attaching the pendulum.
+    offset = 4.5*DPI
+    holes = [
+        {
+            "cx": center.x,
+            "cy": center.y + offset,
+            "r": TIGHT_LARGE_BOLT_RADIUS,
+        },
+        {
+            "cx": center.x,
+            "cy": center.y + PENDULUM_HOLE_SEPARATION*2 + offset,
+            "r": TIGHT_LARGE_BOLT_RADIUS,
+        },
+    ]
+
     piece = {
         "type": "verge",
         "color": color,
@@ -201,6 +216,7 @@ def generate_verge(color, esc_center, speed, hole_radius, cz):
         "hole_radius": hole_radius,
         "left_full_in_angle": -4,
         "right_full_in_angle": 4,
+        "holes": holes,
     }
     return piece
 
@@ -213,7 +229,7 @@ def generate(data, origin, speed, hole_radius, cz=0):
     piece = generate_escapement_wheel("#FF6666", origin,
             escapement_angle_offset, speed, hole_radius, cz)
     bind.add_bind_info(piece)
-    data["pieces"].append(piece)
+    # data["pieces"].append(piece)
 
     # Verge.
     if True:

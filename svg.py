@@ -16,7 +16,7 @@
 from config import SCALE
 
 # "Hairline" in AI.
-STROKE_WIDTH = 0.001
+STROKE_WIDTH = 1.001
 
 def header(out, width, height):
     out.write("""<?xml version="1.0" encoding="utf-8"?>
@@ -24,7 +24,7 @@ def header(out, width, height):
 <!ENTITY ns_svg "http://www.w3.org/2000/svg">
 ]>
 <!-- Width and height include stroke width. -->
-<svg xmlns="&ns_svg;" width="%d" height="%d" overflow="visible" style="background: black">
+<svg xmlns="&ns_svg;" width="%d" height="%d" overflow="visible" style="background: white">
 <g id="Layer_1" transform="scale(%g,%g)">
     <!-- 72 DPI -->
     <!-- <rect x="0" y="0" width="%g" height="%g" fill="none" stroke="#000000"/> -->

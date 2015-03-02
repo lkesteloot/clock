@@ -17,12 +17,10 @@ import sys
 import math
 
 from vector import Vector
-from config import DPI, TAU, TIGHT_LARGE_BOLT_RADIUS
+from config import DPI, TAU, TIGHT_LARGE_BOLT_RADIUS, PENDULUM_HOLE_SEPARATION, PENDULUM_BAR_WIDTH, PENDULUM_BAR_HEIGHT, PENDULUM_WEIGHT_WIDTH, PENDULUM_WEIGHT_HEIGHT
 
-PADDING = DPI*1
 CORNER_RADIUS = DPI*0.25
 CORNER_POINTS = 32
-FOOT_WIDTH = PADDING - 2*CORNER_RADIUS
 
 # Generate a new sequence of points with the corners rounded to "radius".
 def round_corners(P, radius, point_count):
@@ -60,67 +58,29 @@ def round_corners(P, radius, point_count):
 
     return newP
 
-def generate(data, color):
-    # Deduce size and position of frame, and its holes, from the existing data.
-    minX = DPI*100
-    minY = DPI*100
-    maxX = -DPI*100
-    maxY = -DPI*100
-    floorY = -DPI*100
-
-    holes = []
-    for piece in data["pieces"]:
-        cx = piece["cx"]
-        cy = piece["cy"]
-        minX = min(minX, cx)
-        minY = min(minY, cy)
-        maxX = max(maxX, cx)
-        maxY = max(maxY, cy)
-        for x, y in piece["points"]:
-            floorY = max(floorY, cy + y)
-        for hole in holes:
-            if hole["cx"] == cx and hole["cy"] == cy:
-                break
-        else:
-            holes.append({
-                "cx": cx,
-                "cy": cy,
-                "r": TIGHT_LARGE_BOLT_RADIUS,
-            })
-    sys.stderr.write("The frame has %d holes.\n" % len(holes))
-
-    # Expand margin.
-    minX -= PADDING
-    minY -= PADDING
-    maxX += PADDING
-    maxY += PADDING
-    floorY += PADDING
-
-    # Draw frame.
+def add_holed_rectangle(data, cx, cy, cz, width, height, color):
     P = []
-    P.append((minX, minY))
-    P.append((maxX, minY))
-    P.append((maxX, floorY))
-    P.append((maxX - FOOT_WIDTH, floorY))
-    P.append((maxX - FOOT_WIDTH, maxY))
-    P.append((minX + FOOT_WIDTH, maxY))
-    P.append((minX + FOOT_WIDTH, floorY))
-    P.append((minX, floorY))
-    # Do not close this, the round_corners() function does it.
-
+    P.append((0, 0))
+    P.append((width, 0))
+    P.append((width, height))
+    P.append((0, height))
     P = round_corners(P, CORNER_RADIUS, CORNER_POINTS)
 
-    width = (maxX - minX)/DPI
-    height = (floorY - minY)/DPI
-    sys.stderr.write("Frame is %.1fx%.1f inches\n" % (width, height))
-    if width > 24 or height > 18:
-        sys.stderr.write("------------------ FRAME TOO LARGE -----------------------\n")
+    holes = []
+    y = PENDULUM_HOLE_SEPARATION
+    while y < height - PENDULUM_HOLE_SEPARATION/2:
+        holes.append({
+            "cx": cx + width/2,
+            "cy": cy + y,
+            "r": TIGHT_LARGE_BOLT_RADIUS,
+        })
+        y += PENDULUM_HOLE_SEPARATION
 
     piece = {
-        "cx": 0,
-        "cy": 0,
-        "cz": -3,
-        "type": "frame",
+        "cx": cx,
+        "cy": cy,
+        "cz": cz,
+        "type": "pendulum_bar",
         "color": color,
         "speed": 0,
         "points": P,
@@ -128,7 +88,21 @@ def generate(data, color):
     }
     data["pieces"].append(piece)
 
-    piece = piece.copy()
-    piece["cz"] = 9
-    data["pieces"].append(piece)
+def add_bar(data, cx, cy, cz, color):
+    add_holed_rectangle(data, cx, cy, cz, PENDULUM_BAR_WIDTH, PENDULUM_BAR_HEIGHT, color)
 
+def add_weight(data, cx, cy, cz, color):
+    add_holed_rectangle(data, cx, cy, cz, PENDULUM_WEIGHT_WIDTH, PENDULUM_WEIGHT_HEIGHT, color)
+
+def generate(data, color):
+    cx = 0
+    cy = 0
+    cz = 0
+
+    add_bar(data, cx, cy, cz, color)
+
+    cx += PENDULUM_BAR_WIDTH + 0.1*DPI
+    add_bar(data, cx, cy, cz, color)
+
+    cx += PENDULUM_BAR_WIDTH + 0.1*DPI
+    add_weight(data, cx, cy, cz, color)
