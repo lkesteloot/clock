@@ -229,7 +229,7 @@ def generate(data, origin, speed, hole_radius, cz=0):
     piece = generate_escapement_wheel("#FF6666", origin,
             escapement_angle_offset, speed, hole_radius, cz)
     bind.add_bind_info(piece)
-    # data["pieces"].append(piece)
+    data["pieces"].append(piece)
 
     # Verge.
     if True:

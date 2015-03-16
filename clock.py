@@ -17,7 +17,7 @@ import sys
 import argparse
 import json
 
-from config import DPI, WIDTH, HEIGHT, MODULE, TIGHT_LARGE_BOLT_RADIUS, LOOSE_LARGE_BOLT_RADIUS, MODULE, MATERIAL_THICKNESS, BEARING_RADIUS
+from config import DPI, WIDTH, HEIGHT, MODULE, TIGHT_LARGE_BOLT_RADIUS, MATERIAL_THICKNESS, BEARING_RADIUS
 import train
 import frame
 import escapement
@@ -42,7 +42,7 @@ def main():
     escapement_cz = 0
 
     # Hour hand:
-    gear_train.add_gear(64, None, LOOSE_LARGE_BOLT_RADIUS, cz=0)
+    gear_train.add_gear(64, None, BEARING_RADIUS, cz=0)
     gear_train.add_gear(16, train.WEST, BEARING_RADIUS, cz=0)
 
     gear_train.add_gear(60, None, BEARING_RADIUS, cz=2)
@@ -68,16 +68,18 @@ def main():
     gear_train.add_separators(escapement_cz, BEARING_RADIUS)
 
     # Add escapement.
-    data["pieces"] = []
+    ## data["pieces"] = []
     escapement.generate(data, Vector(gear_train.cx, gear_train.cy), gear_train.speed, BEARING_RADIUS, cz=escapement_cz)
 
     # Add frame.
-    ## frame.generate(data, "#00FF00")
+    frame.generate(data, "#00FF00")
 
     # Add pendulum.
-    pendulum.generate(data, "#0000FF")
+    ## pendulum.generate(data, "#0000FF")
 
     json.dump(data, sys.stdout, indent=4)
+
+    gear_train.dump_statistics(sys.stderr)
 
 if __name__ == "__main__":
     main()

@@ -33,7 +33,7 @@ def main():
 
     out = sys.stdout
     x_multiplier = 1.0
-    cz_vertical_offset = 5*DPI
+    cz_vertical_offset = 5*DPI*0
 
     svg.header(out, WIDTH*x_multiplier, HEIGHT*7)
 
@@ -49,15 +49,14 @@ def main():
         name = "%s_%d" % (piece["type"], piece_index)
         svg.start_group(out, name, cx, cy)
 
-        # Offset piece by center.
-        p = [(x + cx, y + cy) for (x, y) in piece["points"]]
+        p = piece["points"]
         svg.start_group(out, name + "_body")
         svg.polyline(out, p, color)
         svg.end_group(out)
 
         if "hole_radius" in piece:
             svg.start_group(out, name + "_hole")
-            svg.circle(out, cx, cy, piece["hole_radius"], color)
+            svg.circle(out, 0, 0, piece["hole_radius"], color)
             svg.end_group(out)
         if "bind" in piece:
             bind = piece["bind"]

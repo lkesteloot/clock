@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import math, sys
+import math, sys, collections
 
 from config import GEAR_SPACING, TAU, DPI
 import gear
@@ -51,6 +51,8 @@ class GearTrain:
         self.speed = 1.0
         self.module = module
         self.angle_offset = 0
+        # Teeth to count.
+        self.gear_count = collections.defaultdict(lambda: 0)
 
     def set_angle_offset(self, angle_offset):
         "Rotate all gears by this much, where pi means an entire tooth on a one-tooth gear."
@@ -72,6 +74,8 @@ class GearTrain:
                 self.data["pieces"].append(piece)
 
     def add_gear(self, teeth_count, direction, hole_radius, cz=1, suppress=False):
+        self.gear_count[teeth_count] += 1
+
         distance = (self.last_teeth_count + teeth_count)/2.0*self.module + GEAR_SPACING
 
         x = self.cx
@@ -126,3 +130,8 @@ class GearTrain:
         self.cy = y
         self.last_teeth_count = teeth_count
         self.last_cz = cz
+
+    def dump_statistics(self, out):
+        for teeth_count in sorted(self.gear_count.keys()):
+            out.write("%d gears with %d teeth.\n" % (self.gear_count[teeth_count], teeth_count))
+

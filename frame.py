@@ -17,12 +17,14 @@ import sys
 import math
 
 from vector import Vector
-from config import DPI, TAU, TIGHT_LARGE_BOLT_RADIUS
+from config import DPI, TAU, TIGHT_LARGE_BOLT_RADIUS, WALL_ANCHOR_RADIUS, WALL_ANCHOR_OFFSET
 
 PADDING = DPI*1
 CORNER_RADIUS = DPI*0.25
 CORNER_POINTS = 32
 FOOT_WIDTH = PADDING - 2*CORNER_RADIUS
+ADD_FEET = False
+ADD_WALL_ANCHOR_HOLES = False
 
 # Generate a new sequence of points with the corners rounded to "radius".
 def round_corners(P, radius, point_count):
@@ -87,6 +89,12 @@ def generate(data, color):
                 "cy": cy,
                 "r": TIGHT_LARGE_BOLT_RADIUS,
             })
+    # Add hole in lower-left since there are no axles there.
+    holes.append({
+        "cx": minX,
+        "cy": maxY,
+        "r": TIGHT_LARGE_BOLT_RADIUS,
+    })
     sys.stderr.write("The frame has %d holes.\n" % len(holes))
 
     # Expand margin.
@@ -100,26 +108,31 @@ def generate(data, color):
     P = []
     P.append((minX, minY))
     P.append((maxX, minY))
-    P.append((maxX, floorY))
-    P.append((maxX - FOOT_WIDTH, floorY))
-    P.append((maxX - FOOT_WIDTH, maxY))
-    P.append((minX + FOOT_WIDTH, maxY))
-    P.append((minX + FOOT_WIDTH, floorY))
-    P.append((minX, floorY))
+    if ADD_FEET:
+        P.append((maxX, floorY))
+        P.append((maxX - FOOT_WIDTH, floorY))
+        P.append((maxX - FOOT_WIDTH, maxY))
+        P.append((minX + FOOT_WIDTH, maxY))
+        P.append((minX + FOOT_WIDTH, floorY))
+        P.append((minX, floorY))
+    else:
+        P.append((maxX, maxY))
+        P.append((minX, maxY))
     # Do not close this, the round_corners() function does it.
 
     P = round_corners(P, CORNER_RADIUS, CORNER_POINTS)
 
     width = (maxX - minX)/DPI
-    height = (floorY - minY)/DPI
+    height = ((floorY if ADD_FEET else maxY) - minY)/DPI
     sys.stderr.write("Frame is %.1fx%.1f inches\n" % (width, height))
     if width > 24 or height > 18:
         sys.stderr.write("------------------ FRAME TOO LARGE -----------------------\n")
 
+    # Front piece.
     piece = {
         "cx": 0,
         "cy": 0,
-        "cz": -3,
+        "cz": 9,
         "type": "frame",
         "color": color,
         "speed": 0,
@@ -128,7 +141,34 @@ def generate(data, color):
     }
     data["pieces"].append(piece)
 
+    # Back piece.
     piece = piece.copy()
-    piece["cz"] = 9
+
+    # Add holes for hanging frame to wall.
+    holes = holes[:]
+    if ADD_WALL_ANCHOR_HOLES:
+        piece["holes"] = holes
+        holes.append({
+            "cx": minX + WALL_ANCHOR_OFFSET + PADDING,
+            "cy": minY + PADDING,
+            "r": WALL_ANCHOR_RADIUS,
+        })
+        holes.append({
+            "cx": maxX - WALL_ANCHOR_OFFSET - PADDING,
+            "cy": minY + PADDING,
+            "r": WALL_ANCHOR_RADIUS,
+        })
+        holes.append({
+            "cx": minX + WALL_ANCHOR_OFFSET + PADDING,
+            "cy": maxY - PADDING,
+            "r": WALL_ANCHOR_RADIUS,
+        })
+        holes.append({
+            "cx": maxX - WALL_ANCHOR_OFFSET - PADDING,
+            "cy": maxY - PADDING,
+            "r": WALL_ANCHOR_RADIUS,
+        })
+
+    piece["cz"] = -3
     data["pieces"].append(piece)
 

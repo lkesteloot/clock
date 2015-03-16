@@ -257,6 +257,13 @@ var startRendering = function (data) {
                             gear.bind.hole_radius, 20, material, gearObject);
             }
         }
+        if (gear.holes) {
+            for (var i = 0; i < gear.holes.length; i++) {
+                var hole = gear.holes[i];
+                addCylinder(hole.cx, -hole.cy, 0, data.material_thickness,
+                            hole.r, 20, material, gearObject);
+            }
+        }
 
         // Make a parent gear object for all three.
         gearObject.position.x = cx;

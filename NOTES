@@ -1,12 +1,13 @@
 
 To do:
+    Learn how to tie fishing wire.
+    Lengthen pendulum to get one click per second.
+    Fix all the negation of Y in clock.js. Decide on axes.
     Document and be clear about what is relative to center and what is absolute in pieces.
         Should all be relative to center.
     Incorporate pendulum into 3D visualization.
     Refractor round_corners().
     Fix verge hole offset.
-    Redesign whole layout, including frame.
-    Smaller pendulum swing angle?
     Incorporate lessons from the first prototype.
         The nuts of the binders run into the other gears, especially if the bolts of the
             binders are too long. Perhaps double the number of separators to avoid this.
@@ -18,10 +19,27 @@ To do:
         Remove the blue cover first?
         Cut separators with smaller inner hole.
     Do we want to keep horizontal layout, now that we can re-use axles?
-    Add pendulum.
-    Add spool.
     Add minute and hour hand.
         How to do that with new axle scheme?
+
+Weight:
+    Weigh wrench.
+        70g.
+    Where to put weight?
+        Second axle: 1 lb. Might run into pendulum.
+        Third axle: 3 lbs.
+
+Learned March 15, 2015:
+    Did 7,90,5000.
+        The recommended value was 9,90,5000, but that stuck in the upper-left.
+    Small binding holes are hard to punch out.
+        Maybe do two passes. They're probably melting.
+        3 times at 14,90,5000 worked.
+    Removing acrylic cover first is great.
+        No, it burned the acrylic.
+    Nut of binding hangs on bearing.
+    Add hour and minute hand to gears.
+        Okay to cut all the way through if not closed shape.
 
 Notes from Michael Birken:
     - https://www.youtube.com/watch?v=6w1dDuSqO90&hd=1

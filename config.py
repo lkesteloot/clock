@@ -66,5 +66,11 @@ PENDULUM_WEIGHT_HEIGHT = 4*DPI
 # We're using 3/16 acrylic.
 MATERIAL_THICKNESS = 3.0/16*DPI
 
+# Wall anchor screw radius. These are #8 screws, 0.16" diameter.
+WALL_ANCHOR_RADIUS = (0.16/2 + 0.01)*DPI
+
+# How far the wall anchors are from the left and right of the clock.
+WALL_ANCHOR_OFFSET = 2*DPI
+
 # References:
 # [1]: http://us.mt.com/dam/mt_ext_files/Editorial/Generic/5/bolt_thread_types_dimensions_0x0002464400026aa20006025d_files/bolt.pdf
