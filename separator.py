@@ -16,6 +16,7 @@
 import math
 
 from config import TAU, SEPARATOR_RADIUS
+from vector import Vector
 
 # Closed circle.
 def generate_circle_points(x, y, r, n):
@@ -23,7 +24,7 @@ def generate_circle_points(x, y, r, n):
 
     for i in range(n + 1):
         t = float(i)/n*TAU
-        p.append((x + math.cos(t)*r, y + math.sin(t)*r))
+        p.append(Vector(x + math.cos(t)*r, y + math.sin(t)*r))
 
     return p
 

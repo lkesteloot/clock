@@ -18,6 +18,7 @@ import math
 
 from vector import Vector
 from config import DPI, TAU, TIGHT_LARGE_BOLT_RADIUS, WALL_ANCHOR_RADIUS, WALL_ANCHOR_OFFSET
+import draw
 
 PADDING = DPI*1
 CORNER_RADIUS = DPI*0.25
@@ -25,42 +26,6 @@ CORNER_POINTS = 32
 FOOT_WIDTH = PADDING - 2*CORNER_RADIUS
 ADD_FEET = False
 ADD_WALL_ANCHOR_HOLES = False
-
-# Generate a new sequence of points with the corners rounded to "radius".
-def round_corners(P, radius, point_count):
-    newP = []
-
-    # For each point in P (which is open), draw a line from P to the next point,
-    # and the following quarter circle.
-    for i in range(len(P)):
-        # This and next point.
-        p0 = Vector.from_pair(P[i])
-        p1 = Vector.from_pair(P[(i + 1) % len(P)])
-        p2 = Vector.from_pair(P[(i + 2) % len(P)])
-
-        # Find direction to next point.
-        dp0 = (p1 - p0).normalized()
-
-        # And point after that.
-        dp1 = (p2 - p1).normalized()
-
-        # Straight line.
-        newP.append(p0 + dp0*radius)
-        newP.append(p1 - dp0*radius)
-
-        # Quarter circle.
-        c = p1 - dp0*radius + dp1*radius
-        for j in range(point_count):
-            t = (j + 1.0)/(point_count + 1)*TAU/4
-            newP.append(c + (dp0*math.sin(t) - dp1*math.cos(t))*radius)
-
-    # Close path.
-    newP.append(newP[0])
-
-    # Convert to pairs.
-    newP = [p.to_pair() for p in newP]
-
-    return newP
 
 def generate(data, color):
     # Deduce size and position of frame, and its holes, from the existing data.
@@ -78,8 +43,8 @@ def generate(data, color):
         minY = min(minY, cy)
         maxX = max(maxX, cx)
         maxY = max(maxY, cy)
-        for x, y in piece["points"]:
-            floorY = max(floorY, cy + y)
+        for v in piece["points"]:
+            floorY = max(floorY, cy + v.y)
         for hole in holes:
             if hole["cx"] == cx and hole["cy"] == cy:
                 break
@@ -106,21 +71,21 @@ def generate(data, color):
 
     # Draw frame.
     P = []
-    P.append((minX, minY))
-    P.append((maxX, minY))
+    P.append(Vector(minX, minY))
+    P.append(Vector(maxX, minY))
     if ADD_FEET:
-        P.append((maxX, floorY))
-        P.append((maxX - FOOT_WIDTH, floorY))
-        P.append((maxX - FOOT_WIDTH, maxY))
-        P.append((minX + FOOT_WIDTH, maxY))
-        P.append((minX + FOOT_WIDTH, floorY))
-        P.append((minX, floorY))
+        P.append(Vector(maxX, floorY))
+        P.append(Vector(maxX - FOOT_WIDTH, floorY))
+        P.append(Vector(maxX - FOOT_WIDTH, maxY))
+        P.append(Vector(minX + FOOT_WIDTH, maxY))
+        P.append(Vector(minX + FOOT_WIDTH, floorY))
+        P.append(Vector(minX, floorY))
     else:
-        P.append((maxX, maxY))
-        P.append((minX, maxY))
+        P.append(Vector(maxX, maxY))
+        P.append(Vector(minX, maxY))
     # Do not close this, the round_corners() function does it.
 
-    P = round_corners(P, CORNER_RADIUS, CORNER_POINTS)
+    P = draw.round_corners(P, CORNER_RADIUS, CORNER_POINTS)
 
     width = (maxX - minX)/DPI
     height = ((floorY if ADD_FEET else maxY) - minY)/DPI
@@ -147,6 +112,7 @@ def generate(data, color):
     # Add holes for hanging frame to wall.
     holes = holes[:]
     if ADD_WALL_ANCHOR_HOLES:
+        # XXX Can probably delete this.
         piece["holes"] = holes
         holes.append({
             "cx": minX + WALL_ANCHOR_OFFSET + PADDING,

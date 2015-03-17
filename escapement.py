@@ -127,7 +127,7 @@ def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radiu
     piece = {
         "type": "escapement_wheel",
         "color": color,
-        "points": [v.to_pair() for v in p],
+        "points": p,
         "cx": center.x,
         "cy": center.y,
         "cz": cz,
@@ -194,13 +194,13 @@ def generate_verge(color, esc_center, speed, hole_radius, cz):
     offset = 4.5*DPI
     holes = [
         {
-            "cx": center.x,
-            "cy": center.y + offset,
+            "cx": 0,
+            "cy": offset,
             "r": TIGHT_LARGE_BOLT_RADIUS,
         },
         {
-            "cx": center.x,
-            "cy": center.y + PENDULUM_HOLE_SEPARATION*2 + offset,
+            "cx": 0,
+            "cy": PENDULUM_HOLE_SEPARATION*2 + offset,
             "r": TIGHT_LARGE_BOLT_RADIUS,
         },
     ]
@@ -208,7 +208,7 @@ def generate_verge(color, esc_center, speed, hole_radius, cz):
     piece = {
         "type": "verge",
         "color": color,
-        "points": [v.to_pair() for v in p],
+        "points": p,
         "cx": center.x,
         "cy": center.y,
         "cz": cz,

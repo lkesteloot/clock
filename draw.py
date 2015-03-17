@@ -13,7 +13,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import argparse
+import argparse, math
+
+from config import TAU
+from vector import Vector
 
 # Draw shapes into array of points.
 
@@ -42,3 +45,36 @@ def add_bezier(p, p1, p2, p3, p4, point_count):
 
         p.append(pppp1)
 
+# Generate a new sequence of points with the corners rounded to "radius". Do
+# not close the original path. Points must be in (x,y) tuple format.
+def round_corners(P, radius, point_count):
+    newP = []
+
+    # For each point in P (which is open), draw a line from P to the next point,
+    # and the following quarter circle.
+    for i in range(len(P)):
+        # This and next point.
+        p0 = P[i]
+        p1 = P[(i + 1) % len(P)]
+        p2 = P[(i + 2) % len(P)]
+
+        # Find direction to next point.
+        dp0 = (p1 - p0).normalized()
+
+        # And point after that.
+        dp1 = (p2 - p1).normalized()
+
+        # Straight line.
+        newP.append(p0 + dp0*radius)
+        newP.append(p1 - dp0*radius)
+
+        # Quarter circle.
+        c = p1 - dp0*radius + dp1*radius
+        for j in range(point_count):
+            t = (j + 1.0)/(point_count + 1)*TAU/4
+            newP.append(c + (dp0*math.sin(t) - dp1*math.cos(t))*radius)
+
+    # Close path.
+    newP.append(newP[0])
+
+    return newP

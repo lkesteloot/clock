@@ -18,45 +18,10 @@ import math
 
 from vector import Vector
 from config import DPI, TAU, TIGHT_LARGE_BOLT_RADIUS, PENDULUM_HOLE_SEPARATION, PENDULUM_BAR_WIDTH, PENDULUM_BAR_HEIGHT, PENDULUM_WEIGHT_WIDTH, PENDULUM_WEIGHT_HEIGHT
+import draw
 
 CORNER_RADIUS = DPI*0.25
 CORNER_POINTS = 32
-
-# Generate a new sequence of points with the corners rounded to "radius".
-def round_corners(P, radius, point_count):
-    newP = []
-
-    # For each point in P (which is open), draw a line from P to the next point,
-    # and the following quarter circle.
-    for i in range(len(P)):
-        # This and next point.
-        p0 = Vector.from_pair(P[i])
-        p1 = Vector.from_pair(P[(i + 1) % len(P)])
-        p2 = Vector.from_pair(P[(i + 2) % len(P)])
-
-        # Find direction to next point.
-        dp0 = (p1 - p0).normalized()
-
-        # And point after that.
-        dp1 = (p2 - p1).normalized()
-
-        # Straight line.
-        newP.append(p0 + dp0*radius)
-        newP.append(p1 - dp0*radius)
-
-        # Quarter circle.
-        c = p1 - dp0*radius + dp1*radius
-        for j in range(point_count):
-            t = (j + 1.0)/(point_count + 1)*TAU/4
-            newP.append(c + (dp0*math.sin(t) - dp1*math.cos(t))*radius)
-
-    # Close path.
-    newP.append(newP[0])
-
-    # Convert to pairs.
-    newP = [p.to_pair() for p in newP]
-
-    return newP
 
 def add_holed_rectangle(data, cx, cy, cz, width, height, color):
     P = []
@@ -64,7 +29,7 @@ def add_holed_rectangle(data, cx, cy, cz, width, height, color):
     P.append((width, 0))
     P.append((width, height))
     P.append((0, height))
-    P = round_corners(P, CORNER_RADIUS, CORNER_POINTS)
+    P = draw.round_corners(P, CORNER_RADIUS, CORNER_POINTS)
 
     holes = []
     y = PENDULUM_HOLE_SEPARATION

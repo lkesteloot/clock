@@ -17,6 +17,7 @@ import sys
 from math import sin, cos, tan, sqrt, pi, atan
 
 from config import NUM_POINTS_ROOT, NUM_POINTS_FILLET, NUM_POINTS_FLANK, NUM_POINTS_TOP
+from vector import Vector
 
 def inv(a):
     return tan(a) - a
@@ -140,8 +141,8 @@ def generate(cx, cy, z, hole_radius, angle_offset, color, module):
         phi = -2*(tooth*pi + angle_offset)/z
 
         for x, y in p:
-            P.append( ((x*cos(phi) - y*sin(phi))*module,
-                       -(x*sin(phi) + y*cos(phi))*module) )
+            P.append(Vector((x*cos(phi) - y*sin(phi))*module,
+                           -(x*sin(phi) + y*cos(phi))*module))
 
     piece = {
         "cx": cx,

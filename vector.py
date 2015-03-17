@@ -18,10 +18,6 @@ from math import sqrt, sin, cos, atan2
 # 2D vector class.
 class Vector:
     @staticmethod
-    def from_pair(p):
-        return Vector(p[0], p[1])
-
-    @staticmethod
     def circle(t):
         return Vector(cos(t), sin(t))
 
@@ -75,6 +71,6 @@ class Vector:
     def flipY(self):
         return Vector(self.x, -self.y)
 
-    def to_pair(self):
+    def to_JSON(self):
         return self.x, self.y
 

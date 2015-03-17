@@ -77,7 +77,8 @@ def main():
     # Add pendulum.
     ## pendulum.generate(data, "#0000FF")
 
-    json.dump(data, sys.stdout, indent=4)
+    # Dump JSON output. If generating a custom object, call its to_JSON() method.
+    json.dump(data, sys.stdout, indent=4, default=lambda obj: obj.to_JSON())
 
     gear_train.dump_statistics(sys.stderr)
 
