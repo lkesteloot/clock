@@ -73,8 +73,8 @@ WALL_ANCHOR_RADIUS = (0.16/2 + 0.01)*DPI
 WALL_ANCHOR_OFFSET = 2*DPI
 
 # For verge and pendulum swings.
-LEFT_FULL_IN_ANGLE = -4
-RIGHT_FULL_IN_ANGLE = 4
+LEFT_FULL_IN_ANGLE = -2
+RIGHT_FULL_IN_ANGLE = 2
 
 # References:
 # [1]: http://us.mt.com/dam/mt_ext_files/Editorial/Generic/5/bolt_thread_types_dimensions_0x0002464400026aa20006025d_files/bolt.pdf
