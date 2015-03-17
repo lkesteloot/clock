@@ -4,15 +4,8 @@ To do:
         http://fishandboat.com/education/learning/fish_funda/tmf_knots.pdf
         http://www.animatedknots.com/indexfishing.php
     Lengthen pendulum to get one click per second.
-    Fix all the negation of Y in clock.js. Decide on axes.
-    Document and be clear about what is relative to center and what is absolute in pieces.
-        Should all be relative to center.
-    Incorporate pendulum into 3D visualization.
-    Incorporate lessons from the first prototype.
-        The nuts of the binders run into the other gears, especially if the bolts of the
-            binders are too long. Perhaps double the number of separators to avoid this.
-        Move the binding nuts further away from the axle so they don't run into the bearings.
     Figure out minute/hour hand pattern.
+    Change Z to be in DPI.
 
 Weight:
     Wrench was on escapement wheel: 70g.

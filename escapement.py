@@ -16,7 +16,7 @@
 from math import sin, cos, tan, sqrt, pi, atan, floor, acos
 
 from vector import Vector
-from config import DPI, TAU, TIGHT_LARGE_BOLT_RADIUS, PENDULUM_HOLE_SEPARATION
+from config import DPI, TAU, TIGHT_LARGE_BOLT_RADIUS, PENDULUM_HOLE_SEPARATION, LEFT_FULL_IN_ANGLE, RIGHT_FULL_IN_ANGLE
 import bind
 import draw
 
@@ -136,10 +136,7 @@ def generate_escapement_wheel(color, center, angle_offset_deg, speed, hole_radiu
     }
     return piece
 
-def generate_verge(color, esc_center, speed, hole_radius, cz):
-    # esc_center is the center of the escapement. Come up with our own center.
-    center = esc_center + VERGE_OFFSET
-
+def generate_verge(color, verge_center, esc_center, speed, hole_radius, cz):
     zero = Vector(VERGE_POINT_RADIUS, 0)
     left_point = esc_center + zero.rotated(VERGE_LEFT_ANGLE)
     right_point = esc_center + zero.rotated(VERGE_RIGHT_ANGLE)
@@ -172,15 +169,15 @@ def generate_verge(color, esc_center, speed, hole_radius, cz):
 
     # Path to right of right tooth.
     ctrl = right_out + (right_out - right_point).normalized()*VERGE_CTRL
-    middle = center + VERGE_MIDDLE_OFFSET
+    middle = verge_center + VERGE_MIDDLE_OFFSET
     draw.add_bezier(p, right_out, ctrl, middle + VERGE_MIDDLE_CTRL, middle, 100)
 
     # Path to bottom.
-    bottom = center + VERGE_BOTTOM_OFFSET
+    bottom = verge_center + VERGE_BOTTOM_OFFSET
     draw.add_bezier(p, middle, middle - VERGE_MIDDLE_CTRL, bottom + VERGE_BOTTOM_CTRL, bottom, 100)
 
     # Path back from bottom on left.
-    middle = center + VERGE_MIDDLE_OFFSET.flipX()
+    middle = verge_center + VERGE_MIDDLE_OFFSET.flipX()
     draw.add_bezier(p, bottom, bottom - VERGE_BOTTOM_CTRL, middle - VERGE_MIDDLE_CTRL.flipX(), middle, 100)
 
     # Path to the left of left tooth.
@@ -188,7 +185,7 @@ def generate_verge(color, esc_center, speed, hole_radius, cz):
     draw.add_bezier(p, middle, middle + VERGE_MIDDLE_CTRL.flipX(), ctrl, left_out, 100)
 
     # Normalize to our own center.
-    p = [v - center for v in p]
+    p = [v - verge_center for v in p]
 
     # Add holes at the bottom for attaching the pendulum.
     offset = 4.5*DPI
@@ -209,29 +206,31 @@ def generate_verge(color, esc_center, speed, hole_radius, cz):
         "type": "verge",
         "color": color,
         "points": p,
-        "cx": center.x,
-        "cy": center.y,
+        "cx": verge_center.x,
+        "cy": verge_center.y,
         "cz": cz,
         "speed": speed,
         "hole_radius": hole_radius,
-        "left_full_in_angle": -4,
-        "right_full_in_angle": 4,
+        "left_full_in_angle": LEFT_FULL_IN_ANGLE,
+        "right_full_in_angle": RIGHT_FULL_IN_ANGLE,
         "holes": holes,
     }
-    return piece
+    return piece, offset
 
-# "origin" is the center of the escapement wheel.
-def generate(data, origin, speed, hole_radius, cz=0):
+# "esc_center" is the center of the escapement wheel.
+def generate(data, esc_center, speed, hole_radius, cz=0):
     # Home.
     escapement_angle_offset = 4.0
 
     # Escapement wheel.
-    piece = generate_escapement_wheel("#FF6666", origin,
+    piece = generate_escapement_wheel("#FF6666", esc_center,
             escapement_angle_offset, speed, hole_radius, cz)
     bind.add_bind_info(piece)
     data["pieces"].append(piece)
 
     # Verge.
-    if True:
-        piece = generate_verge("#FF0000", origin, speed, hole_radius, cz)
-        data["pieces"].append(piece)
+    verge_center = esc_center + VERGE_OFFSET
+    piece, verge_hole_offset = generate_verge("#FF0000", verge_center, esc_center, speed, hole_radius, cz)
+    data["pieces"].append(piece)
+
+    return verge_center, verge_hole_offset

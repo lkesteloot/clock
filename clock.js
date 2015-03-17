@@ -144,7 +144,7 @@ var initializeThree = function () {
             var object3d = object.object3d;
             var theta;
 
-            if (piece.type === "verge") {
+            if (piece.type === "verge" || piece.type === "pendulum") {
                 // Map two seconds to TAU (one cycle), then Sine that, map to 0 to 1.
                 var span = Math.sin(g_time/2*TAU + 0.6)/2 + 0.5;
                 var left_full_in_angle = piece.left_full_in_angle*TAU/360;

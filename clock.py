@@ -69,13 +69,15 @@ def main():
 
     # Add escapement.
     ## data["pieces"] = []
-    escapement.generate(data, Vector(gear_train.cx, gear_train.cy), gear_train.speed, BEARING_RADIUS, cz=escapement_cz)
+    esc_center = Vector(gear_train.cx, gear_train.cy)
+    verge_center, verge_hole_offset = escapement.generate(data, esc_center,
+            gear_train.speed, BEARING_RADIUS, cz=escapement_cz)
 
     # Add frame.
     frame.generate(data, "#00FF00")
 
     # Add pendulum.
-    ## pendulum.generate(data, "#0000FF")
+    pendulum.generate(data, verge_center, verge_hole_offset, escapement_cz, gear_train.speed, "#0000FF")
 
     # Dump JSON output. If generating a custom object, call its to_JSON() method.
     json.dump(data, sys.stdout, indent=4, default=lambda obj: obj.to_JSON())
