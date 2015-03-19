@@ -1,8 +1,5 @@
 
 To do:
-    Learn how to tie fishing wire.
-        http://fishandboat.com/education/learning/fish_funda/tmf_knots.pdf
-        http://www.animatedknots.com/indexfishing.php
     Lengthen pendulum to get one click per second.
     Figure out minute/hour hand pattern.
     Change Z to be in DPI.
@@ -214,3 +211,7 @@ Research:
             Gear (hold is larger than axle)
             Ring with bearing in the middle.
 
+Tying fishing wire:
+    http://fishandboat.com/education/learning/fish_funda/tmf_knots.pdf
+        The "non-slip loop knot" worked well.
+    http://www.animatedknots.com/indexfishing.php
