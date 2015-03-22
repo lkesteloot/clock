@@ -1,15 +1,4 @@
 
-To do:
-    Lengthen pendulum to get one click per second.
-    Figure out minute/hour hand pattern.
-    Change Z to be in DPI.
-
-Weight:
-    Wrench was on escapement wheel: 70g.
-    Where to put weight?
-        Second axle: 1 lb. Might run into pendulum.
-        Third axle: 3 lbs.
-
 Notes from Michael Birken:
     - https://www.youtube.com/watch?v=6w1dDuSqO90&hd=1
     - http://imgur.com/fBH9L
@@ -213,5 +202,6 @@ Research:
 
 Tying fishing wire:
     http://fishandboat.com/education/learning/fish_funda/tmf_knots.pdf
-        The "non-slip loop knot" worked well.
+        The "non-slip loop knot" worked well at the end of the string.
+        The "palomar knot" worked well on nut at end of weight.
     http://www.animatedknots.com/indexfishing.php

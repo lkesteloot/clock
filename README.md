@@ -1,7 +1,7 @@
 # Acrylic Pendulum Clock
 
 This project includes some code to design, visualize, and laser-cut parts
-of an acrylic pendulum clock.
+of an acrylic pendulum clock. See the [full write-up](http://www.teamten.com/lawrence/projects/acrylic-pendulum-clock/).
 
 The `clock.py` program generates a JSON file describing the parts of the
 clock. Run it using this command:
